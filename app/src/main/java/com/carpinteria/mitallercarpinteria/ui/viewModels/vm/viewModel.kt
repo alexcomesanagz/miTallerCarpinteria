@@ -1,4 +1,4 @@
-package com.carpinteria.mitallercarpinteria.ui.viewModels
+package com.carpinteria.mitallercarpinteria.ui.viewModels.vm
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
