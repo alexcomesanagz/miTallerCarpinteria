@@ -2,23 +2,22 @@ package com.carpinteria.mitallercarpinteria.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Paleta del Taller
-val FondoCrema = Color(0xFFFAF3E0)
-val DarkBrownHeader = Color(0xFF4A2E1A)
-val CardBackground = Color(0xFFFFFDF5)
-val CardBorder = Color(0xFFDDD4C0)
-val TextDarkBrown = Color(0xFF332211)
+val TextDarkBrown = Color(0xFF302218)
+val MutedBrown = Color(0xFF6E5D4F)
+val FondoCrema = Color(0xFFFFF8E8)
+val CardBackground = Color(0xFFFFFDF7)
+val CardBorder = Color(0xFF8F6C49)
+val LineColor = Color(0xFFC8AF8B)
 
-// Colores para etiquetas de estado
-val GreenStatusBg = Color(0xFFD4EDDA)
-val GreenStatusText = Color(0xFF155724)
-val YellowStatusBg = Color(0xFFFFF3CD)
-val YellowStatusText = Color(0xFF856404)
+val WoodPrimary = Color(0xFF6F3C23)
+val DarkBrownHeader = Color(0xFF482415)
 
-// Colores para botones de acción
-val YellowButtonBg = Color(0xFFF9D876)
-val YellowButtonBorder = Color(0xFFC8A131)
-val RedButtonBg = Color(0xFFFADBD8)
-val RedButtonBorder = Color(0xFFC0392B)
-val GreenButtonBg = Color(0xFFD4EFDF)
-val GreenButtonBorder = Color(0xFF27AE60)
+val YellowButtonBg = Color(0xFFF7C948)
+val YellowButtonDark = Color(0xFF8A5A00)
+
+val GreenStatusBg = Color(0xFFD9F0de)
+val GreenStatusText = Color(0xFF173E27)
+val GreenPrimary = Color(0xFF287548)
+
+val RedAlertBg = Color(0xFFFFE1DC)
+val RedAlertText = Color(0xFFB7322C)

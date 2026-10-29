@@ -21,7 +21,7 @@ import com.carpinteria.mitallercarpinteria.ui.theme.DarkBrownHeader
 import com.carpinteria.mitallercarpinteria.ui.theme.MiTallerCarpinteriaTheme
 
 @Composable
-fun HeaderSection(
+fun HeaderSeccion(
     titleTop: String = "TALLER DE CARPINTERÍA",
     titleMain: String = "La Buena Madera",
     logoResId: Int = R.drawable.ic_launcher_foreground
@@ -68,8 +68,8 @@ fun HeaderSection(
 
 @Preview(showBackground = true)
 @Composable
-fun HeaderSectionPreview() {
+fun HeaderSeccionPreview() {
     MiTallerCarpinteriaTheme {
-        HeaderSection()
+        HeaderSeccion()
     }
 }
