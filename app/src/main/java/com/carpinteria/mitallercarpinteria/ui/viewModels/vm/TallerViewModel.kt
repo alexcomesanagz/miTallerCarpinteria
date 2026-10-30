@@ -2,15 +2,12 @@ package com.carpinteria.mitallercarpinteria.ui.viewModels.vm
 
 import android.app.Application
 import android.content.Context
-import android.util.Log
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.viewModelScope
-import com.carpinteria.mitallercarpinteria.data.api.RetrofitClient
+import com.carpinteria.mitallercarpinteria.data.repositorio.objetosRepo.TallerRepoGeneral
 import com.carpinteria.mitallercarpinteria.ui.viewModels.Uis.TallerUiState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
 
 class TallerViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -20,25 +17,46 @@ class TallerViewModel(application: Application) : AndroidViewModel(application) 
     private val context: Context?
         get() = getApplication<Application>().applicationContext
 
-    fun cargarClientes() {
-        viewModelScope.launch {
-            try {
-                // Opcional: _uiState.value = _uiState.value.copy(isLoading = true)
-                val lista = RetrofitClient.apiService.obtenerClientes()
+    // Repositorio general unificado (permite cambiar entre local y remoto fácilmente)
+    val tallerRepo = TallerRepoGeneral.repo
 
+    init {
+        cargarDatosTaller()
+    }
+
+    /**
+     * Carga los clientes y encargos del taller utilizando los repositorios y callbacks
+     */
+    fun cargarDatosTaller() {
+        // Activa el indicador de carga en la UI
+        _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+
+        // Obtiene los clientes
+        tallerRepo.obtenerClientes(
+            onSuccess = { listaClientes ->
                 _uiState.value = _uiState.value.copy(
-                    clientes = lista,
+                    clientes = listaClientes,
                     isLoading = false
                 )
-
-                Log.d("TALLER_APP", "Clientes cargados con éxito: ${lista.size}")
-            } catch (e: Exception) {
+            },
+            onError = {
                 _uiState.value = _uiState.value.copy(
                     isLoading = false,
-                    mensajeError = e.localizedMessage
+                    error = "Error al cargar los clientes"
                 )
-                Log.e("TALLER_APP", "Error al conectar con el backend", e)
             }
-        }
+        )
+
+        // Obtiene los encargos
+        tallerRepo.obtenerEncargos(
+            onSuccess = { listaEncargos ->
+                _uiState.value = _uiState.value.copy(
+                    encargos = listaEncargos
+                )
+            },
+            onError = {
+                // Manejo opcional de error para encargos
+            }
+        )
     }
 }
