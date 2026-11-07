@@ -7,19 +7,17 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import com.carpinteria.mitallercarpinteria.data.model.ClienteDTO
 import com.carpinteria.mitallercarpinteria.ui.viewModels.vm.TallerViewModel
 import com.carpinteria.mitallercarpinteria.ui.vista.paginas.PaginaPrincipal
 
 // Importar aquí páginas cuando las vaya creando:
 // ej: import com.carpinteria.mitallercarpinteria.ui.vista.paginas.PaginaEliminarEncargp
 
-object TallerRoutes {
-    const val home = "home"
-    const val allProjects = "all_projects"
-    const val projectDetail = "project_detail/{idProyecto}"
-
-    // Función auxiliar para pasar el ID del proyecto de forma limpia
-    fun createProjectDetailRoute(idProyecto: String) = "project_detail/$idProyecto"
+object Routes {
+    const val principal = "principal"
+    const val lista = "lista"
+    const val detalleProyecto = "detalleProyecto/{idProyecto}"
 }
 
 /**
@@ -30,31 +28,35 @@ object TallerRoutes {
 @Composable
 fun TallerNavGraph(navController: NavHostController, viewModel: TallerViewModel) {
 
-    NavHost(navController = navController, startDestination = TallerRoutes.home) {
+    NavHost(navController = navController, startDestination = Routes.principal) {
 
-        // Pantalla Principal (Home)
-        composable(TallerRoutes.home) {
+        // Pantalla Principal
+        composable(Routes.principal) {
+            viewModel.cargarDatosTaller()
             PaginaPrincipal(
                 viewModel = viewModel,
                 onVerTodosClick = {
-                    navController.navigate(TallerRoutes.allProjects)
+                    navController.navigate(Routes.lista)
                 },
-                onClienteClick = { cliente ->
-                    // Navega al detalle usando el ID del cliente o proyecto
-                    navController.navigate(TallerRoutes.createProjectDetailRoute(cliente.id.toString()))
+                onClienteClick = { clienteObj ->
+                    // Hace el cast seguro a ClienteDTO para extraer su id real
+                    val cliente = clienteObj as? ClienteDTO
+                    if (cliente != null) {
+                        navController.navigate("detalleProyecto/${cliente.id}")
+                    }
                 }
             )
         }
 
-        // Pantalla "Ver todos los proyectos"
-        composable(TallerRoutes.allProjects) {
+        // Pantalla de Lista de Proyectos
+        composable(Routes.lista) {
             // Aquí llamar a pantalla de lista completa
             // ej: PaginaProyectos(onBackClick = { navController.popBackStack() })
         }
 
         // Pantalla de Detalle de un Proyecto/Trabajo (con argumento ID)
         composable(
-            route = TallerRoutes.projectDetail,
+            route = Routes.detalleProyecto,
             arguments = listOf(navArgument("idProyecto") { type = NavType.StringType })
         ) { backStackEntry ->
             val idProyecto = backStackEntry.arguments?.getString("idProyecto") ?: return@composable

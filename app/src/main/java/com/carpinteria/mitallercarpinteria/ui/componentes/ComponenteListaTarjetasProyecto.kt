@@ -3,6 +3,7 @@ package com.carpinteria.mitallercarpinteria.ui.componentes
 import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
@@ -18,7 +19,7 @@ import com.carpinteria.mitallercarpinteria.ui.theme.MiTallerCarpinteriaTheme
 import com.carpinteria.mitallercarpinteria.ui.theme.TextDarkBrown
 
 @Composable
-fun ProjectList(
+fun ListaTarjetasProyecto(
     clientes: List<ClienteDTO>,
     onClienteClick: (ClienteDTO) -> Unit,
     modifier: Modifier = Modifier
@@ -36,8 +37,8 @@ fun ProjectList(
         } else {
             clientes.forEach { cliente ->
                 TarjetaProyecto(
-                    titulo = cliente.titulosEncargos ?: "Sin nombre",
-                    cliente = cliente.nombre ?: "",
+                    titulo = cliente.titulosEncargos?.firstOrNull() ?: "Sin proyectos",
+                    cliente = cliente.nombre ?: "Sin nombre",
                     estado = "Activo",
                     estadoBg = GreenStatusBg,
                     estadoTextColor = GreenStatusText,
@@ -53,14 +54,34 @@ fun ProjectList(
 
 @Preview(showBackground = true, backgroundColor = 0xFFFFF8E8)
 @Composable
-fun ProjectListPreview() {
+fun ListaTarjetasProyectoPreview() {
     MiTallerCarpinteriaTheme {
-        Column(modifier = Modifier.padding(16.dp)) {
-            ProjectList(
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            ListaTarjetasProyecto(
                 clientes = listOf(
-                    ClienteDTO().apply {
-                        // Asignamos datos de prueba si tu DTO lo permite, o simulamos con un mock
-                    }
+                    ClienteDTO(
+                        id = 1L,
+                        nombre = "Carmen Ruiz",
+                        telefono = "600111222",
+                        titulosEncargos = listOf("Armario de roble")
+                    ),
+                    ClienteDTO(
+                        id = 2L,
+                        nombre = "Manuel Ortega",
+                        telefono = "600333444",
+                        titulosEncargos = listOf("Mesa de comedor")
+                    ),
+                    ClienteDTO(
+                        id = 3L,
+                        nombre = "Pilar Gómez",
+                        telefono = "600555666",
+                        titulosEncargos = listOf("Puerta de entrada")
+                    )
                 ),
                 onClienteClick = {}
             )
