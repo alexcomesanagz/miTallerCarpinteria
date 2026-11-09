@@ -8,12 +8,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.HelpOutline
+import androidx.compose.material.icons.filled.Work
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.carpinteria.mitallercarpinteria.ui.theme.*
@@ -22,11 +24,13 @@ import com.carpinteria.mitallercarpinteria.ui.theme.*
 fun TarjetaHerramienta(
     titulo: String,
     icon: ImageVector,
-    isEnabled: Boolean = false, // Por defecto inhabilitadas
+    isEnabled: Boolean = false,
+    urlDestino: String? = null, // Opcional: solo se usa si se le pasa explícitamente
     onClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    // Colores que varían dependiendo si una herramienta esta implementada o no
+    val uriHandler = LocalUriHandler.current
+
     val backgroundColor = if (isEnabled) Color(0xFFF8DC88) else Color(0xFFEEE5D6)
     val borderColor = if (isEnabled) Color(0xFF936416) else Color(0xFFA9977F)
 
@@ -37,7 +41,15 @@ fun TarjetaHerramienta(
         shape = RoundedCornerShape(17.dp),
         colors = CardDefaults.cardColors(containerColor = backgroundColor),
         border = BorderStroke(3.dp, borderColor),
-        onClick = onClick
+        onClick = {
+            if (!urlDestino.isNullOrBlank()) {
+                // Si la tarjeta tiene una URL configurada (ej. Ayuda -> YouTube), abre el enlace
+                uriHandler.openUri(urlDestino)
+            } else {
+                // Si no tiene URL, ejecuta su acción normal (para el resto de herramientas a futuro)
+                onClick()
+            }
+        }
     ) {
         TarjetaHerramientaContenido(
             titulo = titulo,
@@ -49,13 +61,28 @@ fun TarjetaHerramienta(
 
 @Preview(showBackground = true, backgroundColor = 0xFFFFF8E8)
 @Composable
-fun TarjetaHerramientaPreview() {
+fun TarjetaHerramientaAyudaPreview() {
     MiTallerCarpinteriaTheme {
         Box(modifier = Modifier.padding(16.dp)) {
             TarjetaHerramienta(
                 titulo = "Ayuda",
                 icon = Icons.AutoMirrored.Filled.HelpOutline,
-                isEnabled = true
+                isEnabled = true,
+                urlDestino = "https://www.youtube.com/@midudev" // Enlace de prueba para YouTube
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFFFFF8E8)
+@Composable
+fun TarjetaHerramientaInactivaPreview() {
+    MiTallerCarpinteriaTheme {
+        Box(modifier = Modifier.padding(16.dp)) {
+            TarjetaHerramienta(
+                titulo = "Mejorar plan",
+                icon = Icons.Default.Work,
+                isEnabled = false // Deshabilitada por defecto para mostrar "Próximamente"
             )
         }
     }

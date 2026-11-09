@@ -2,6 +2,7 @@ package com.carpinteria.mitallercarpinteria.ui.componentes
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.HelpOutline
 import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -80,9 +81,9 @@ fun ListaTarjetasHerramienta(
             Box(modifier = Modifier.weight(1f)) {
                 TarjetaHerramienta(
                     titulo = "Ayuda",
-                    icon = Icons.Default.HelpOutline,
-                    isEnabled = true, // Activa y destacada en amarillo
-                    onClick = { onHerramientaClick("Ayuda") }
+                    icon = Icons.AutoMirrored.Filled.HelpOutline,
+                    isEnabled = true,
+                    urlDestino = "https://www.youtube.com/@midudev" // Ayuda abre YouTube
                 )
             }
         }
