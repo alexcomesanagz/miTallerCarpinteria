@@ -16,11 +16,12 @@ import com.carpinteria.mitallercarpinteria.ui.theme.*
 
 @Composable
 fun TarjetaContenedorProyecto(
+    modifier: Modifier = Modifier,
     onClick: () -> Unit = {},
     content: @Composable RowScope.() -> Unit
 ) {
     Card(
-        modifier = Modifier
+        modifier = modifier // Se aplica al componente principal de la tarjeta
             .fillMaxWidth()
             .padding(vertical = 6.dp)
             .border(3.dp, CardBorder, RoundedCornerShape(18.dp)),
