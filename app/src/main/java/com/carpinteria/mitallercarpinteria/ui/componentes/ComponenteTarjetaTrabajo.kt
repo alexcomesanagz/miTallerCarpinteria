@@ -1,6 +1,5 @@
 package com.carpinteria.mitallercarpinteria.ui.componentes
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -17,20 +16,20 @@ import androidx.compose.ui.unit.dp
 import com.carpinteria.mitallercarpinteria.ui.theme.*
 
 // Modos configurables para la tarjeta de proyecto
-enum class ModoTarjetaProyecto {
+enum class ModoTarjetaTrabajo {
     COMPLETA,       // Vista original con flecha
     SOLO_EDITAR,    // Franja lateral con Lápiz
     SOLO_ELIMINAR   // Franja lateral con Papelera
 }
 
 @Composable
-fun TarjetaProyecto(
+fun TarjetaTrabajo(
     titulo: String,
     cliente: String,
     estado: String,
     estadoBg: Color = GreenStatusBg,
     estadoTextColor: Color = GreenStatusText,
-    modo: ModoTarjetaProyecto = ModoTarjetaProyecto.COMPLETA,
+    modo: ModoTarjetaTrabajo = ModoTarjetaTrabajo.COMPLETA,
     onClick: () -> Unit = {},
     onEditarClick: () -> Unit = {},
     onEliminarClick: () -> Unit = {},
@@ -62,7 +61,7 @@ fun TarjetaProyecto(
 
             // Panel de Acción (Derecha)
             when (modo) {
-                ModoTarjetaProyecto.COMPLETA -> {
+                ModoTarjetaTrabajo.COMPLETA -> {
                     Column(
                         horizontalAlignment = Alignment.End,
                         verticalArrangement = Arrangement.Center,
@@ -72,7 +71,7 @@ fun TarjetaProyecto(
                     }
                 }
 
-                ModoTarjetaProyecto.SOLO_EDITAR -> {
+                ModoTarjetaTrabajo.SOLO_EDITAR -> {
                     Spacer(
                         modifier = Modifier
                             .width(3.dp)
@@ -96,7 +95,7 @@ fun TarjetaProyecto(
                     }
                 }
 
-                ModoTarjetaProyecto.SOLO_ELIMINAR -> {
+                ModoTarjetaTrabajo.SOLO_ELIMINAR -> {
                     Spacer(
                         modifier = Modifier
                             .width(3.dp)
@@ -128,14 +127,14 @@ fun TarjetaProyecto(
 
 @Preview(showBackground = true, backgroundColor = 0xFFFFF8E8)
 @Composable
-fun TarjetaProyectoCompletaPreview() {
+fun TarjetaTrabajoCompletaPreview() {
     MiTallerCarpinteriaTheme {
         Box(modifier = Modifier.padding(16.dp)) {
-            TarjetaProyecto(
+            TarjetaTrabajo(
                 titulo = "Armario de roble",
                 cliente = "Carmen Ruiz",
                 estado = "En curso",
-                modo = ModoTarjetaProyecto.COMPLETA
+                modo = ModoTarjetaTrabajo.COMPLETA
             )
         }
     }
@@ -143,14 +142,14 @@ fun TarjetaProyectoCompletaPreview() {
 
 @Preview(showBackground = true, backgroundColor = 0xFFFFF8E8)
 @Composable
-fun TarjetaProyectoSoloEditarPreview() {
+fun TarjetaTrabajoSoloEditarPreview() {
     MiTallerCarpinteriaTheme {
         Box(modifier = Modifier.padding(16.dp)) {
-            TarjetaProyecto(
+            TarjetaTrabajo(
                 titulo = "Estantería salón",
                 cliente = "Antonio León",
                 estado = "En curso",
-                modo = ModoTarjetaProyecto.SOLO_EDITAR
+                modo = ModoTarjetaTrabajo.SOLO_EDITAR
             )
         }
     }
@@ -161,11 +160,11 @@ fun TarjetaProyectoSoloEditarPreview() {
 fun TarjetaProyectoSoloEliminarPreview() {
     MiTallerCarpinteriaTheme {
         Box(modifier = Modifier.padding(16.dp)) {
-            TarjetaProyecto(
+            TarjetaTrabajo(
                 titulo = "Puerta de entrada",
                 cliente = "Pilar Gómez",
                 estado = "Terminado",
-                modo = ModoTarjetaProyecto.SOLO_ELIMINAR
+                modo = ModoTarjetaTrabajo.SOLO_ELIMINAR
             )
         }
     }

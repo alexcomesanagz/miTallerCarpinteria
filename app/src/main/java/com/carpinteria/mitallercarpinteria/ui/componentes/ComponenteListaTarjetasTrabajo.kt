@@ -19,9 +19,12 @@ import com.carpinteria.mitallercarpinteria.ui.theme.MiTallerCarpinteriaTheme
 import com.carpinteria.mitallercarpinteria.ui.theme.TextDarkBrown
 
 @Composable
-fun ListaTarjetasProyecto(
+fun ListaTarjetasTrabajo(
     clientes: List<ClienteDTO>,
-    onClienteClick: (ClienteDTO) -> Unit,
+    modo: ModoTarjetaTrabajo = ModoTarjetaTrabajo.COMPLETA,
+    onClienteClick: (ClienteDTO) -> Unit = {},
+    onEditarClick: (ClienteDTO) -> Unit = {},
+    onEliminarClick: (ClienteDTO) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -36,15 +39,24 @@ fun ListaTarjetasProyecto(
             )
         } else {
             clientes.forEach { cliente ->
-                TarjetaProyecto(
+                TarjetaTrabajo(
                     titulo = cliente.titulosEncargos?.firstOrNull() ?: "Sin proyectos",
                     cliente = cliente.nombre ?: "Sin nombre",
                     estado = "Activo",
                     estadoBg = GreenStatusBg,
                     estadoTextColor = GreenStatusText,
+                    modo = modo,
                     onClick = {
                         Log.d("ProjectList", "Clic en cliente: ${cliente.nombre}")
                         onClienteClick(cliente)
+                    },
+                    onEditarClick = {
+                        Log.d("ProjectList", "Editar cliente: ${cliente.nombre}")
+                        onEditarClick(cliente)
+                    },
+                    onEliminarClick = {
+                        Log.d("ProjectList", "Eliminar cliente: ${cliente.nombre}")
+                        onEliminarClick(cliente)
                     }
                 )
             }
@@ -54,7 +66,7 @@ fun ListaTarjetasProyecto(
 
 @Preview(showBackground = true, backgroundColor = 0xFFFFF8E8)
 @Composable
-fun ListaTarjetasProyectoPreview() {
+fun ListaTarjetasTrabajoPreview() {
     MiTallerCarpinteriaTheme {
         Column(
             modifier = Modifier
@@ -62,7 +74,7 @@ fun ListaTarjetasProyectoPreview() {
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            ListaTarjetasProyecto(
+            ListaTarjetasTrabajo(
                 clientes = listOf(
                     ClienteDTO(
                         id = 1L,
@@ -75,14 +87,41 @@ fun ListaTarjetasProyectoPreview() {
                         nombre = "Manuel Ortega",
                         telefono = "600333444",
                         titulosEncargos = listOf("Mesa de comedor")
-                    ),
-                    ClienteDTO(
-                        id = 3L,
-                        nombre = "Pilar Gómez",
-                        telefono = "600555666",
-                        titulosEncargos = listOf("Puerta de entrada")
                     )
                 ),
+                modo = ModoTarjetaTrabajo.SOLO_ELIMINAR,
+                onEliminarClick = {}
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFFFFF8E8)
+@Composable
+fun ListaTarjetasTrabajoModoNormalPreview() {
+    MiTallerCarpinteriaTheme {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            ListaTarjetasTrabajo(
+                clientes = listOf(
+                    ClienteDTO(
+                        id = 1L,
+                        nombre = "Carmen Ruiz",
+                        telefono = "600111222",
+                        titulosEncargos = listOf("Armario de roble")
+                    ),
+                    ClienteDTO(
+                        id = 2L,
+                        nombre = "Manuel Ortega",
+                        telefono = "600333444",
+                        titulosEncargos = listOf("Mesa de comedor")
+                    )
+                ),
+                modo = ModoTarjetaTrabajo.COMPLETA, // Modo normal por defecto
                 onClienteClick = {}
             )
         }

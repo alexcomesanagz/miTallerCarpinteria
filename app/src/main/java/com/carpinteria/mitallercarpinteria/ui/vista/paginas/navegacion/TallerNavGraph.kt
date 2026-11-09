@@ -8,15 +8,14 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.carpinteria.mitallercarpinteria.data.model.ClienteDTO
+import com.carpinteria.mitallercarpinteria.ui.componentes.ModoTarjetaTrabajo
 import com.carpinteria.mitallercarpinteria.ui.viewModels.vm.TallerViewModel
+import com.carpinteria.mitallercarpinteria.ui.vista.paginas.PaginaListaTrabajos
 import com.carpinteria.mitallercarpinteria.ui.vista.paginas.PaginaPrincipal
-
-// Importar aquí páginas cuando las vaya creando:
-// ej: import com.carpinteria.mitallercarpinteria.ui.vista.paginas.PaginaEliminarEncargp
 
 object Routes {
     const val principal = "principal"
-    const val lista = "lista"
+    const val lista = "lista/{modo}" // Ruta parametrizada para el modo (COMPLETA, SOLO_ELIMINAR, SOLO_EDITAR)
     const val detalleProyecto = "detalleProyecto/{idProyecto}"
 }
 
@@ -36,7 +35,15 @@ fun TallerNavGraph(navController: NavHostController, viewModel: TallerViewModel)
             PaginaPrincipal(
                 viewModel = viewModel,
                 onVerTodosClick = {
-                    navController.navigate(Routes.lista)
+                    // Navega a la lista en modo completo (Ver/Acceder)
+                    navController.navigate("lista/${ModoTarjetaTrabajo.COMPLETA.name}")
+                },
+                onEditarTrabajosClick = {
+                    navController.navigate("lista/${ModoTarjetaTrabajo.SOLO_EDITAR.name}")
+                },
+                onEliminarTrabajosClick = {
+                    // Navega a la lista en modo eliminar (Papelera roja)
+                    navController.navigate("lista/${ModoTarjetaTrabajo.SOLO_ELIMINAR.name}")
                 },
                 onClienteClick = { clienteObj ->
                     // Hace el cast seguro a ClienteDTO para extraer su id real
@@ -48,10 +55,25 @@ fun TallerNavGraph(navController: NavHostController, viewModel: TallerViewModel)
             )
         }
 
-        // Pantalla de Lista de Proyectos
-        composable(Routes.lista) {
-            // Aquí llamar a pantalla de lista completa
-            // ej: PaginaProyectos(onBackClick = { navController.popBackStack() })
+        //Página lista trabajos
+        composable(
+            route = Routes.lista,
+            arguments = listOf(navArgument("modo") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val modoString = backStackEntry.arguments?.getString("modo") ?: ModoTarjetaTrabajo.COMPLETA.name
+            val modoActual = try {
+                ModoTarjetaTrabajo.valueOf(modoString)
+            } catch (e: IllegalArgumentException) {
+                ModoTarjetaTrabajo.COMPLETA
+            }
+
+            PaginaListaTrabajos(
+                modoInicial = modoActual,
+                onVolverClick = { navController.popBackStack() },
+                onClienteSeleccionado = { cliente ->
+                    navController.navigate("detalleProyecto/${cliente.id}")
+                }
+            )
         }
 
         // Pantalla de Detalle de un Proyecto/Trabajo (con argumento ID)

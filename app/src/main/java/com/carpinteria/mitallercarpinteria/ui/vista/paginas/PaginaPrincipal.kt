@@ -15,7 +15,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.carpinteria.mitallercarpinteria.ui.componentes.ListaTarjetasProyecto
+import com.carpinteria.mitallercarpinteria.ui.componentes.ListaTarjetasTrabajo
 import com.carpinteria.mitallercarpinteria.ui.theme.MiTallerCarpinteriaTheme
 import com.carpinteria.mitallercarpinteria.ui.viewModels.vm.TallerViewModel
 import com.carpinteria.mitallercarpinteria.data.model.ClienteDTO
@@ -32,18 +32,21 @@ import com.carpinteria.mitallercarpinteria.ui.viewModels.Uis.TallerUiState
 fun PaginaPrincipal(
     viewModel: TallerViewModel = viewModel(),
     onVerTodosClick: () -> Unit = {},
+    onEditarTrabajosClick: () -> Unit = {},
+    onEliminarTrabajosClick: () -> Unit = {},
     onCreateProjectClick: () -> Unit = {},
     onClienteClick: (Any) -> Unit = {},
     onHerramientaClick: (String) -> Unit = {}
 ) {
-    // Observa el estado reactivo del ViewModel
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     PaginaPrincipalContent(
         uiState = uiState,
         onVerTodosClick = onVerTodosClick,
-        onCreateProjectClick = onCreateProjectClick,
         onClienteClick = onClienteClick,
+        onEditarTrabajosClick = onEditarTrabajosClick,
+        onEliminarTrabajosClick = onEliminarTrabajosClick,
+        onCreateProjectClick = onCreateProjectClick,
         onHerramientaClick = onHerramientaClick
     )
 }
@@ -52,8 +55,10 @@ fun PaginaPrincipal(
 fun PaginaPrincipalContent(
     uiState: TallerUiState,
     onVerTodosClick: () -> Unit = {},
-    onCreateProjectClick: () -> Unit = {},
     onClienteClick: (Any) -> Unit = {},
+    onEditarTrabajosClick: () -> Unit = {},
+    onEliminarTrabajosClick: () -> Unit = {},
+    onCreateProjectClick: () -> Unit = {},
     onHerramientaClick: (String) -> Unit = {}
 ) {
     Column(
@@ -89,7 +94,7 @@ fun PaginaPrincipalContent(
 
                 // Muestra los primeros 3 proyectos usando el componente ListaTarjetasProyecto
                 val proyectosRecientes = uiState.clientes.take(3)
-                ListaTarjetasProyecto(
+                ListaTarjetasTrabajo(
                     clientes = proyectosRecientes,
                     onClienteClick = { cliente ->
                         onClienteClick(cliente)
@@ -105,8 +110,8 @@ fun PaginaPrincipalContent(
 
                 // Muestra las acciones usando el componente ListaTarjetasAccion
                 ListaTarjetasAccion(
-                    onAccederClick = onVerTodosClick,
-                    onEliminarClick = onVerTodosClick,
+                    onAccederClick = onEditarTrabajosClick,
+                    onEliminarClick = onEliminarTrabajosClick,
                     onCreateClick = onCreateProjectClick
                 )
             }

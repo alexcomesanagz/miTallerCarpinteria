@@ -2,6 +2,7 @@ package com.carpinteria.mitallercarpinteria.ui.viewModels.Uis
 
 import com.carpinteria.mitallercarpinteria.data.model.ClienteDTO
 import com.carpinteria.mitallercarpinteria.data.model.EncargoDTO
+import com.carpinteria.mitallercarpinteria.ui.componentes.ModoTarjetaTrabajo
 
 /**
  * Objeto de estado que utiliza la pantalla principal del taller
@@ -15,4 +16,13 @@ data class TallerUiState(
     val clientes: List<ClienteDTO> = listOf(),
     val encargos: List<EncargoDTO> = listOf(),
     val error: String? = null
+)
+
+data class TrabajosUiState(
+    val isLoading: Boolean = false,
+    val clientes: List<ClienteDTO> = emptyList(),
+    val clientesFiltrados: List<ClienteDTO> = emptyList(),
+    val modoActual: ModoTarjetaTrabajo = ModoTarjetaTrabajo.COMPLETA,
+    val textoBusqueda: String = "",
+    val clienteAEliminar: ClienteDTO? = null
 )
