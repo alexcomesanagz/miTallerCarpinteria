@@ -26,10 +26,10 @@ fun DialogoConfirmarEliminar(
     onConfirmar: () -> Unit,
     onDescartar: () -> Unit
 ) {
-    Dialog(onDismissRequest = onDescartar) {
+    Dialog(onDismissRequest = onDescartar,) {
         Surface(
-            shape = RoundedCornerShape(22.dp),
-            color = Color(0xFFFFF9EC),
+            shape = MaterialTheme.shapes.large,
+            color = FondoCrema,
             border = BorderStroke(6.dp, RedAlertText),
             shadowElevation = 8.dp,
             modifier = Modifier.fillMaxWidth()
