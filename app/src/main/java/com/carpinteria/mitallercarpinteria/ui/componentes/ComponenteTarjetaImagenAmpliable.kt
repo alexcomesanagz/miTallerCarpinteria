@@ -69,7 +69,7 @@ fun TarjetaImagenAmpliable(
         Surface(
             onClick = onAmpliarClick, // Lanza la acción aquí también
             modifier = Modifier
-                .align(Alignment.BottomEnd)
+                .align(Alignment.TopEnd)
                 .padding(10.dp),
             shape = RoundedCornerShape(8.dp),
             color = Color(0xCC24170E)
