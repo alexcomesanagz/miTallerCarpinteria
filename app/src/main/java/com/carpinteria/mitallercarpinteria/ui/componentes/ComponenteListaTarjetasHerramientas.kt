@@ -83,7 +83,7 @@ fun ListaTarjetasHerramienta(
                     titulo = "Ayuda",
                     icon = Icons.AutoMirrored.Filled.HelpOutline,
                     isEnabled = true,
-                    urlDestino = "https://www.youtube.com/@midudev" // Ayuda abre YouTube
+                    urlDestino = "https://www.youtube.com/@ArtesanoDigital_forjaSoftware" // Ayuda abre YouTube
                 )
             }
         }
