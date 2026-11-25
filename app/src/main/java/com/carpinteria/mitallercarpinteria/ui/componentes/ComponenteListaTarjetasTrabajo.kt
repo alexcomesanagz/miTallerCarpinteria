@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -13,6 +15,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.carpinteria.mitallercarpinteria.data.model.ClienteDTO
+import com.carpinteria.mitallercarpinteria.data.model.EncargoDTO
 import com.carpinteria.mitallercarpinteria.ui.theme.GreenStatusBg
 import com.carpinteria.mitallercarpinteria.ui.theme.GreenStatusText
 import com.carpinteria.mitallercarpinteria.ui.theme.MiTallerCarpinteriaTheme
@@ -21,6 +24,7 @@ import com.carpinteria.mitallercarpinteria.ui.theme.TextDarkBrown
 @Composable
 fun ListaTarjetasTrabajo(
     clientes: List<ClienteDTO>,
+    encargos: List<EncargoDTO> = emptyList(),
     modo: ModoTarjetaTrabajo = ModoTarjetaTrabajo.COMPLETA,
     onClienteClick: (ClienteDTO) -> Unit = {},
     onEditarClick: (ClienteDTO) -> Unit = {},
@@ -39,10 +43,11 @@ fun ListaTarjetasTrabajo(
             )
         } else {
             clientes.forEach { cliente ->
+                val estadoEncargo = encargos.find{ it.clienteId == cliente.id}?.estado ?: "En curso"
                 TarjetaTrabajo(
                     titulo = cliente.titulosEncargos?.firstOrNull() ?: "Sin proyectos",
                     cliente = cliente.nombre ?: "Sin nombre",
-                    estado = "Activo",
+                    estado = estadoEncargo,
                     estadoBg = GreenStatusBg,
                     estadoTextColor = GreenStatusText,
                     modo = modo,
