@@ -70,7 +70,7 @@ fun PaginaPrincipalContent(
         // 1. CABECERA SUPERIOR
         HeaderSeccion(
             titleTop = "TALLER DE CARPINTERÍA",
-            titleMain = "La Buena Madera"
+            titleMain = "Artesano Digital"
         )
 
         Column(
@@ -96,6 +96,7 @@ fun PaginaPrincipalContent(
                 val proyectosRecientes = uiState.clientes.take(3)
                 ListaTarjetasTrabajo(
                     clientes = proyectosRecientes,
+                    encargos = uiState.encargos,
                     onClienteClick = { cliente ->
                         onClienteClick(cliente)
                     }

@@ -40,6 +40,15 @@ class TrabajosViewModel : ViewModel() {
                 _uiState.update { it.copy(isLoading = false) }
             }
         )
+
+        repositorio.obtenerEncargos(
+            onSuccess = { listaEncargos ->
+                _uiState.update {
+                    it.copy(encargos = listaEncargos)
+                }
+            },
+            onError = {}
+        )
     }
 
     // Configurar si entra en modo normal o eliminar
@@ -71,18 +80,25 @@ class TrabajosViewModel : ViewModel() {
     }
 
     fun confirmarEliminacion(cliente: ClienteDTO) {
+        val idCliente = cliente.id ?: return
         viewModelScope.launch {
-            // Aquí llamar a repositorio para borrarlo en BD (ej: repositorio.eliminarCliente(cliente.id))
-
-            // Actualiza la lista localmente tras borrar
-            _uiState.update { currentState ->
-                val nuevaLista = currentState.clientes.filter { it.id != cliente.id }
-                currentState.copy(
-                    clientes = nuevaLista,
-                    clientesFiltrados = nuevaLista,
-                    clienteAEliminar = null
-                )
-            }
+            repositorio.eliminarCliente(
+                idCliente = idCliente,
+                onSuccess = {
+                    _uiState.update { currentState ->
+                        val nuevaListaClientes = currentState.clientes.filter { it.id != idCliente }
+                        val nuevaListaFiltrada = currentState.clientesFiltrados.filter { it.id != idCliente }
+                        currentState.copy(
+                            clientes = nuevaListaClientes,
+                            clientesFiltrados = nuevaListaFiltrada,
+                            clienteAEliminar = null
+                        )
+                    }
+                },
+                onError = {
+                    _uiState.update { it.copy(clienteAEliminar = null) }
+                }
+            )
         }
     }
 }

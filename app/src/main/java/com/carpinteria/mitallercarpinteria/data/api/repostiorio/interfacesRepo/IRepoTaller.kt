@@ -2,6 +2,8 @@ package com.carpinteria.mitallercarpinteria.data.repositorio.interfacesRepo
 
 import com.carpinteria.mitallercarpinteria.data.model.ClienteDTO
 import com.carpinteria.mitallercarpinteria.data.model.EncargoDTO
+import com.carpinteria.mitallercarpinteria.data.model.FotoEncargoDTO
+import com.carpinteria.mitallercarpinteria.ui.viewModels.Uis.EstadoFormularioTrabajo
 
 interface IRepoTaller {
     /**
@@ -22,5 +24,30 @@ interface IRepoTaller {
     fun obtenerEncargos(
         onSuccess: (List<EncargoDTO>) -> Unit,
         onError: () -> Unit
+    )
+
+    fun guardarTrabajoCompleto(
+        formulario: EstadoFormularioTrabajo,
+        onSuccess: (EncargoDTO) -> Unit,
+        onError: () -> Unit = {}
+    )
+
+    fun obtenerFotosEncargo(
+        idEncargo: Long,
+        onSuccess: (List<FotoEncargoDTO>) -> Unit,
+        onError: () -> Unit = {}
+    )
+
+    fun guardarFotosEncargo(
+        idEncargo: Long,
+        rutasFotos: List<String>,
+        onSuccess: () -> Unit = {},
+        onError: () -> Unit = {}
+    )
+
+    fun eliminarCliente(
+        idCliente: Long,
+        onSuccess: () -> Unit = {},
+        onError: () -> Unit = {}
     )
 }

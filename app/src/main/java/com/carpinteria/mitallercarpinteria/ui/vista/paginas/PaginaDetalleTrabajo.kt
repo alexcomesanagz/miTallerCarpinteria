@@ -1,6 +1,5 @@
 package com.carpinteria.mitallercarpinteria.ui.vista.paginas
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -11,39 +10,51 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.carpinteria.mitallercarpinteria.R
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.carpinteria.mitallercarpinteria.data.model.ClienteDTO
 import com.carpinteria.mitallercarpinteria.ui.componentes.*
 import com.carpinteria.mitallercarpinteria.ui.theme.*
+import com.carpinteria.mitallercarpinteria.ui.viewModels.Uis.DetalleTrabajoUiState
+import com.carpinteria.mitallercarpinteria.ui.viewModels.vm.DetalleTrabajoViewModel
 
 @Composable
 fun PaginaDetalleTrabajo(
     cliente: ClienteDTO?,
+    viewModel: DetalleTrabajoViewModel = viewModel(),
     onVolverClick: () -> Unit = {},
     onEditarClick: (ClienteDTO) -> Unit = {}
 ) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(cliente) {
+        viewModel.cargarDetalle(cliente)
+    }
+
     PaginaDetalleTrabajoContent(
         cliente = cliente,
+        uiState = uiState,
         onVolverClick = onVolverClick,
-        onEditarClick = onEditarClick
+        onEditarClick = onEditarClick,
+        onEstadoSeleccionado = viewModel::cambiarEstadoTrabajo
     )
 }
 
 @Composable
 fun PaginaDetalleTrabajoContent(
     cliente: ClienteDTO?,
+    uiState: DetalleTrabajoUiState = DetalleTrabajoUiState(),
     onVolverClick: () -> Unit = {},
-    onEditarClick: (ClienteDTO) -> Unit = {}
+    onEditarClick: (ClienteDTO) -> Unit = {},
+    onEstadoSeleccionado: (String) -> Unit = {}
 ) {
-    var estadoSeleccionado by remember { mutableStateOf("En curso") }
-
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         containerColor = FondoCrema,
         topBar = {
             HeaderSeccion(
                 titleTop = "DATOS DEL ENCARGO",
-                titleMain = "Ficha del trabajo",
+                titleMain = uiState.tituloProyecto.ifBlank { "Ficha del trabajo" },
                 showBackButton = true,
                 onBackClick = onVolverClick
             )
@@ -68,8 +79,8 @@ fun PaginaDetalleTrabajoContent(
         ) {
             // 1. Datos del Cliente
             TarjetaDatosCliente(
-                nombreCliente = cliente?.nombre ?: "Carmen Ruiz",
-                telefono = cliente?.telefono ?: "612 345 780"
+                nombreCliente = cliente?.nombre ?: "Sin nombre",
+                telefono = cliente?.telefono ?: "Sin teléfono"
             )
 
             // 2. Fechas en paralelo (Creación y Entrega)
@@ -79,54 +90,43 @@ fun PaginaDetalleTrabajoContent(
             ) {
                 TarjetaFecha(
                     titulo = "Fecha creación",
-                    dia = "12",
-                    mesAnio = "Mayo\n2025",
+                    dia = uiState.fechaCreacion.takeLast(2).ifBlank { "--" },
+                    mesAnio = uiState.fechaCreacion.take(7).ifBlank { "Sin fecha" },
                     containerColor = YellowButtonBg,
                     borderColor = YellowButtonDark,
                     modifier = Modifier.weight(1f)
                 )
                 TarjetaFecha(
                     titulo = "Fecha de entrega",
-                    dia = "20",
-                    mesAnio = "Junio\n2025",
+                    dia = uiState.fechaEntrega.takeLast(2).ifBlank { "--" },
+                    mesAnio = uiState.fechaEntrega.take(7).ifBlank { "Pendiente" },
                     modifier = Modifier.weight(1f)
                 )
             }
 
             // 3. Selector de Estado del trabajo
             SeccionEstadoTrabajo(
-                estadoActual = estadoSeleccionado,
-                onEstadoSeleccionado = { estadoSeleccionado = it }
+                estadoActual = uiState.estadoTrabajo,
+                onEstadoSeleccionado = onEstadoSeleccionado
             )
 
             // 4. Tarjeta Numerada: Mediciones
             TarjetaSeccionNumerada(
                 numero = "1",
                 titulo = "MEDICIONES",
-                contenido = listOf(
-                    "Alto: 240 cm",
-                    "Ancho: 180 cm",
-                    "Fondo: 60 cm"
-                )
+                contenido = uiState.mediciones.ifEmpty { listOf("Sin mediciones registradas") }
             )
 
             // 5. Tarjeta Numerada: Materiales
             TarjetaSeccionNumerada(
                 numero = "2",
                 titulo = "MATERIALES",
-                contenido = listOf(
-                    "Tablero de roble 19 mm",
-                    "6 bisagras reforzadas",
-                    "Barniz mate"
-                )
+                contenido = uiState.materiales.ifEmpty { listOf("Sin materiales registrados") }
             )
 
-            // 6. Sección de Fotografías (con soporte para Coil y ampliación modular)
+            // 6. Sección de Fotografías
             SeccionFotos(
-                rutasImagenes = listOf(
-                    "content://media/external/images/media/1",
-                    "content://media/external/images/media/2"
-                ),
+                rutasImagenes = uiState.rutasImagenes
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -134,7 +134,6 @@ fun PaginaDetalleTrabajoContent(
     }
 }
 
-// PREVIEW DE LA PÁGINA COMPLETA
 @Preview(showBackground = true, backgroundColor = 0xFFFFF8E8)
 @Composable
 fun PaginaDetalleTrabajoCompletaPreview() {
@@ -145,6 +144,12 @@ fun PaginaDetalleTrabajoCompletaPreview() {
                 nombre = "Carmen Ruiz",
                 telefono = "612 345 780",
                 titulosEncargos = listOf("Armario de roble")
+            ),
+            uiState = DetalleTrabajoUiState(
+                tituloProyecto = "Armario de roble",
+                estadoTrabajo = "En curso",
+                mediciones = listOf("Alto: 240 cm", "Ancho: 180 cm"),
+                materiales = listOf("Roble")
             )
         )
     }

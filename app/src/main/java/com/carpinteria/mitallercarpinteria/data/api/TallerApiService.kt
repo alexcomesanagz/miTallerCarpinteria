@@ -2,10 +2,13 @@ package com.carpinteria.mitallercarpinteria.data.api
 
 import com.carpinteria.mitallercarpinteria.data.model.ClienteDTO
 import com.carpinteria.mitallercarpinteria.data.model.EncargoDTO
+import com.carpinteria.mitallercarpinteria.data.model.FotoEncargoDTO
 import retrofit2.Call
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.Path
 
 interface TallerApiService {
 
@@ -26,4 +29,18 @@ interface TallerApiService {
 
     @POST("api/encargos")
     fun crearEncargoCall(@Body encargo: EncargoDTO): Call<EncargoDTO>
+
+    @GET("api/encargos/{idEncargo}/fotos")
+    fun obtenerFotosEncargoCall(@retrofit2.http.Path("idEncargo") idEncargo: Long): Call<List<FotoEncargoDTO>>
+
+    @POST("api/encargos/{idEncargo}/fotos")
+    fun guardarFotosEncargoCall(
+        @retrofit2.http.Path("idEncargo") idEncargo: Long,
+        @Body fotos: List<FotoEncargoDTO>
+    ): Call<List<FotoEncargoDTO>>
+
+    @DELETE("api/clientes/{id}")
+    fun eliminarClienteCall(
+        @Path("id") idCliente: Long
+    ): Call<Unit>
 }
