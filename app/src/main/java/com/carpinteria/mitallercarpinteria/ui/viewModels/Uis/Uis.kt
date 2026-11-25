@@ -34,6 +34,8 @@ data class EstadoFormularioTrabajo(
     val nombreCliente: String = "",
     val telefonoCliente: String = "",
     val estadoTrabajo: String = "En curso",
+    val fechaEntregaEstimada: String = "",
+    val fechaCreacion: String = "",
     val mediciones: String = "",
     val materialesTexto: String = "",
     val rutasImagenes: List<String> = emptyList()

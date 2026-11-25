@@ -5,6 +5,8 @@ import com.carpinteria.mitallercarpinteria.data.model.EncargoDTO
 import com.carpinteria.mitallercarpinteria.data.model.FotoEncargoDTO
 import com.carpinteria.mitallercarpinteria.data.repositorio.interfacesRepo.IRepoTaller
 import com.carpinteria.mitallercarpinteria.ui.viewModels.Uis.EstadoFormularioTrabajo
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 class TallerRepoLocal : IRepoTaller {
     private val listaClientesFalsos = mutableListOf(
@@ -102,14 +104,38 @@ class TallerRepoLocal : IRepoTaller {
             (listaEncargosFalsos.maxOfOrNull { it.id } ?: 0L) + 1L
         }
 
+        val hoyIso = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
+        val fechaCreacionFinal = if (indiceEncargo >= 0) {
+            listaEncargosFalsos[indiceEncargo].fechaCreacion
+        } else {
+            hoyIso
+        }
+
+        val fechaEntregaSolicitada = formulario.fechaEntregaEstimada.ifBlank {
+            if (indiceEncargo >= 0) listaEncargosFalsos[indiceEncargo].fechaEntregaEstimada else null
+        }
+
+        val fechaEntregaValidada = if (fechaEntregaSolicitada != null && fechaCreacionFinal != null) {
+            try {
+                val formatter = DateTimeFormatter.ISO_LOCAL_DATE
+                val fCreacion = LocalDate.parse(fechaCreacionFinal, formatter)
+                val fEntrega = LocalDate.parse(fechaEntregaSolicitada, formatter)
+                if (fEntrega.isBefore(fCreacion)) fCreacion.format(formatter) else fechaEntregaSolicitada
+            } catch (_: Exception) {
+                fechaEntregaSolicitada
+            }
+        } else {
+            fechaEntregaSolicitada
+        }
+
         val encargoGuardado = EncargoDTO(
             id = idEncargo,
             titulo = formulario.tituloProyecto,
             estado = formulario.estadoTrabajo,
             mediciones = formulario.mediciones.ifBlank { null },
             materiales = formulario.materialesTexto.ifBlank { null },
-            fechaCreacion = if (indiceEncargo >= 0) listaEncargosFalsos[indiceEncargo].fechaCreacion else "2026-11-24",
-            fechaEntregaEstimada = if (indiceEncargo >= 0) listaEncargosFalsos[indiceEncargo].fechaEntregaEstimada else null,
+            fechaCreacion = fechaCreacionFinal,
+            fechaEntregaEstimada = fechaEntregaValidada,
             clienteId = idCliente,
             nombreCliente = formulario.nombreCliente
         )

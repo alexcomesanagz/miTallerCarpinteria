@@ -35,6 +35,8 @@ class WizardTrabajoViewModel : ViewModel() {
                             formulario = actual.formulario.copy(
                                 tituloProyecto = encargo?.titulo ?: clienteInicial.titulosEncargos?.firstOrNull().orEmpty(),
                                 estadoTrabajo = encargo?.estado ?: "En curso",
+                                fechaEntregaEstimada = encargo?.fechaEntregaEstimada.orEmpty(),
+                                fechaCreacion = encargo?.fechaCreacion.orEmpty(),
                                 mediciones = encargo?.mediciones.orEmpty(),
                                 materialesTexto = encargo?.materiales.orEmpty()
                             )
@@ -92,6 +94,12 @@ class WizardTrabajoViewModel : ViewModel() {
     fun onEstadoChange(nuevoEstado: String) {
         _uiState.update {
             it.copy(formulario = it.formulario.copy(estadoTrabajo = nuevoEstado))
+        }
+    }
+
+    fun onFechaEntregaChange(nuevaFecha: String) {
+        _uiState.update {
+            it.copy(formulario = it.formulario.copy(fechaEntregaEstimada = nuevaFecha))
         }
     }
 

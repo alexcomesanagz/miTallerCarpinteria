@@ -24,6 +24,7 @@ fun SeccionDatosPrincipalesPaso1(
     onClienteChange: (String) -> Unit,
     onTelefonoChange: (String) -> Unit,
     onEstadoChange: (String) -> Unit,
+    onFechaEntregaChange: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -98,10 +99,17 @@ fun SeccionDatosPrincipalesPaso1(
             }
         }
 
+        SelectorFechaEntrega(
+            fechaEntrega = estado.fechaEntregaEstimada,
+            fechaCreacion = estado.fechaCreacion,
+            onFechaSeleccionada = onFechaEntregaChange
+        )
+
         SeccionEstadoTrabajo(
             estadoActual = estado.estadoTrabajo,
             onEstadoSeleccionado = onEstadoChange
         )
+
     }
 }
 
@@ -115,6 +123,7 @@ fun PaginaPaso1Cliente(
     onClienteChange: (String) -> Unit,
     onTelefonoChange: (String) -> Unit,
     onEstadoChange: (String) -> Unit,
+    onFechaEntregaChange: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     SeccionDatosPrincipalesPaso1(
@@ -126,6 +135,7 @@ fun PaginaPaso1Cliente(
         onClienteChange = onClienteChange,
         onTelefonoChange = onTelefonoChange,
         onEstadoChange = onEstadoChange,
+        onFechaEntregaChange = onFechaEntregaChange,
         modifier = modifier
     )
 }
@@ -140,7 +150,8 @@ fun PaginaPaso1ClientePreview() {
                 onTituloChange = {},
                 onClienteChange = {},
                 onTelefonoChange = {},
-                onEstadoChange = {}
+                onEstadoChange = {},
+                onFechaEntregaChange = {}
             )
         }
     }

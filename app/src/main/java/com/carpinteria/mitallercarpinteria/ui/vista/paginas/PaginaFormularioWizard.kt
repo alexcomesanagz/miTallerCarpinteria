@@ -75,7 +75,8 @@ fun PaginaFormularioTrabajoWizard(
                 onTituloChange = viewModel::onTituloChange,
                 onClienteChange = viewModel::onClienteChange,
                 onTelefonoChange = viewModel::onTelefonoChange,
-                onEstadoChange = viewModel::onEstadoChange
+                onEstadoChange = viewModel::onEstadoChange,
+                onFechaEntregaChange = viewModel::onFechaEntregaChange
             )
 
             2 -> PaginaPaso2Detalles(
