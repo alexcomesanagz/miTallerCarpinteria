@@ -7,6 +7,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -22,6 +23,8 @@ import com.carpinteria.mitallercarpinteria.ui.viewModels.vm.DetalleTrabajoViewMo
 fun PaginaDetalleTrabajo(
     cliente: ClienteDTO?,
     viewModel: DetalleTrabajoViewModel = viewModel(),
+    avisoEncargo: Pair<TipoAvisoEncargo, String>? = null,
+    onLimpiarAvisoEncargo: () -> Unit = {},
     onVolverClick: () -> Unit = {},
     onEditarClick: (ClienteDTO) -> Unit = {}
 ) {
@@ -34,6 +37,8 @@ fun PaginaDetalleTrabajo(
     PaginaDetalleTrabajoContent(
         cliente = cliente,
         uiState = uiState,
+        avisoEncargo = avisoEncargo,
+        onLimpiarAvisoEncargo = onLimpiarAvisoEncargo,
         onVolverClick = onVolverClick,
         onEditarClick = onEditarClick,
         onEstadoSeleccionado = viewModel::cambiarEstadoTrabajo
@@ -44,6 +49,8 @@ fun PaginaDetalleTrabajo(
 fun PaginaDetalleTrabajoContent(
     cliente: ClienteDTO?,
     uiState: DetalleTrabajoUiState = DetalleTrabajoUiState(),
+    avisoEncargo: Pair<TipoAvisoEncargo, String>? = null,
+    onLimpiarAvisoEncargo: () -> Unit = {},
     onVolverClick: () -> Unit = {},
     onEditarClick: (ClienteDTO) -> Unit = {},
     onEstadoSeleccionado: (String) -> Unit = {}
@@ -69,67 +76,76 @@ fun PaginaDetalleTrabajoContent(
             )
         }
     ) { innerPadding ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp, vertical = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // 1. Datos del Cliente
-            TarjetaDatosCliente(
-                nombreCliente = cliente?.nombre ?: "Sin nombre",
-                telefono = cliente?.telefono ?: "Sin teléfono"
-            )
-
-            // 2. Fechas en paralelo (Creación y Entrega)
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 16.dp, vertical = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                TarjetaFecha(
-                    titulo = "Fecha creación",
-                    dia = uiState.fechaCreacion.takeLast(2).ifBlank { "--" },
-                    mesAnio = uiState.fechaCreacion.take(7).ifBlank { "Sin fecha" },
-                    containerColor = YellowButtonBg,
-                    borderColor = YellowButtonDark,
-                    modifier = Modifier.weight(1f)
+                TarjetaDatosCliente(
+                    nombreCliente = cliente?.nombre ?: "Sin nombre",
+                    telefono = cliente?.telefono ?: "Sin teléfono"
                 )
-                TarjetaFecha(
-                    titulo = "Fecha de entrega",
-                    dia = uiState.fechaEntrega.takeLast(2).ifBlank { "--" },
-                    mesAnio = uiState.fechaEntrega.take(7).ifBlank { "Pendiente" },
-                    modifier = Modifier.weight(1f)
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    TarjetaFecha(
+                        titulo = "Fecha creación",
+                        dia = uiState.fechaCreacion.takeLast(2).ifBlank { "--" },
+                        mesAnio = uiState.fechaCreacion.take(7).ifBlank { "Sin fecha" },
+                        containerColor = YellowButtonBg,
+                        borderColor = YellowButtonDark,
+                        modifier = Modifier.weight(1f)
+                    )
+                    TarjetaFecha(
+                        titulo = "Fecha de entrega",
+                        dia = uiState.fechaEntrega.takeLast(2).ifBlank { "--" },
+                        mesAnio = uiState.fechaEntrega.take(7).ifBlank { "Pendiente" },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+
+                SeccionEstadoTrabajo(
+                    estadoActual = uiState.estadoTrabajo,
+                    onEstadoSeleccionado = onEstadoSeleccionado
                 )
+
+                TarjetaSeccionNumerada(
+                    numero = "1",
+                    titulo = "MEDICIONES",
+                    contenido = uiState.mediciones.ifEmpty { listOf("Sin mediciones registradas") }
+                )
+
+                TarjetaSeccionNumerada(
+                    numero = "2",
+                    titulo = "MATERIALES",
+                    contenido = uiState.materiales.ifEmpty { listOf("Sin materiales registrados") }
+                )
+
+                SeccionFotos(
+                    rutasImagenes = uiState.rutasImagenes
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
             }
 
-            // 3. Selector de Estado del trabajo
-            SeccionEstadoTrabajo(
-                estadoActual = uiState.estadoTrabajo,
-                onEstadoSeleccionado = onEstadoSeleccionado
+            AvisoFeedbackEncargo(
+                visible = avisoEncargo != null,
+                tipo = avisoEncargo?.first ?: TipoAvisoEncargo.ACTUALIZADO,
+                detalle = avisoEncargo?.second?.takeIf { it.isNotBlank() },
+                onDismiss = onLimpiarAvisoEncargo,
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(horizontal = 16.dp, vertical = 14.dp)
             )
-
-            // 4. Tarjeta Numerada: Mediciones
-            TarjetaSeccionNumerada(
-                numero = "1",
-                titulo = "MEDICIONES",
-                contenido = uiState.mediciones.ifEmpty { listOf("Sin mediciones registradas") }
-            )
-
-            // 5. Tarjeta Numerada: Materiales
-            TarjetaSeccionNumerada(
-                numero = "2",
-                titulo = "MATERIALES",
-                contenido = uiState.materiales.ifEmpty { listOf("Sin materiales registrados") }
-            )
-
-            // 6. Sección de Fotografías
-            SeccionFotos(
-                rutasImagenes = uiState.rutasImagenes
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
         }
     }
 }

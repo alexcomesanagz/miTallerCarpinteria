@@ -10,6 +10,7 @@ import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Work
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -19,10 +20,12 @@ import com.carpinteria.mitallercarpinteria.ui.componentes.ListaTarjetasTrabajo
 import com.carpinteria.mitallercarpinteria.ui.theme.MiTallerCarpinteriaTheme
 import com.carpinteria.mitallercarpinteria.ui.viewModels.vm.TallerViewModel
 import com.carpinteria.mitallercarpinteria.data.model.ClienteDTO
+import com.carpinteria.mitallercarpinteria.ui.componentes.AvisoFeedbackEncargo
 import com.carpinteria.mitallercarpinteria.ui.componentes.HeaderSeccion
 import com.carpinteria.mitallercarpinteria.ui.componentes.LinkAccion
 import com.carpinteria.mitallercarpinteria.ui.componentes.ListaTarjetasAccion
 import com.carpinteria.mitallercarpinteria.ui.componentes.ListaTarjetasHerramienta
+import com.carpinteria.mitallercarpinteria.ui.componentes.TipoAvisoEncargo
 import com.carpinteria.mitallercarpinteria.ui.componentes.TituloSeccion
 import com.carpinteria.mitallercarpinteria.ui.theme.FondoCrema
 import com.carpinteria.mitallercarpinteria.ui.viewModels.Uis.TallerUiState
@@ -47,7 +50,8 @@ fun PaginaPrincipal(
         onEditarTrabajosClick = onEditarTrabajosClick,
         onEliminarTrabajosClick = onEliminarTrabajosClick,
         onCreateProjectClick = onCreateProjectClick,
-        onHerramientaClick = onHerramientaClick
+        onHerramientaClick = onHerramientaClick,
+        onLimpiarAvisoEncargo = viewModel::limpiarAvisoEncargo
     )
 }
 
@@ -59,76 +63,93 @@ fun PaginaPrincipalContent(
     onEditarTrabajosClick: () -> Unit = {},
     onEliminarTrabajosClick: () -> Unit = {},
     onCreateProjectClick: () -> Unit = {},
-    onHerramientaClick: (String) -> Unit = {}
+    onHerramientaClick: (String) -> Unit = {},
+    onLimpiarAvisoEncargo: () -> Unit = {}
 ) {
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .background(FondoCrema)
-            .verticalScroll(rememberScrollState())
     ) {
-        // 1. CABECERA SUPERIOR
-        HeaderSeccion(
-            titleTop = "TALLER DE CARPINTERÍA",
-            titleMain = "Artesano Digital"
-        )
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(32.dp)
+                .verticalScroll(rememberScrollState())
         ) {
-            // 2. PROYECTOS RECIENTES
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                TituloSeccion(
-                    title = "Proyectos recientes",
-                    icon = Icons.Default.Schedule,
-                    action = {
-                        LinkAccion(
-                            text = "Ver todos",
-                            onClick = onVerTodosClick
-                        )
-                    }
-                )
+            // 1. CABECERA SUPERIOR
+            HeaderSeccion(
+                titleTop = "TALLER DE CARPINTERÍA",
+                titleMain = "Artesano Digital"
+            )
 
-                // Muestra los primeros 3 proyectos usando el componente ListaTarjetasProyecto
-                val proyectosRecientes = uiState.clientes.take(3)
-                ListaTarjetasTrabajo(
-                    clientes = proyectosRecientes,
-                    encargos = uiState.encargos,
-                    onClienteClick = { cliente ->
-                        onClienteClick(cliente)
-                    }
-                )
-            }
-            // 3. ACCIONES PRINCIPALES
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                TituloSeccion(
-                    title = "Acciones principales",
-                    icon = Icons.Default.Work
-                )
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(32.dp)
+            ) {
+                // 2. PROYECTOS RECIENTES
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    TituloSeccion(
+                        title = "Proyectos recientes",
+                        icon = Icons.Default.Schedule,
+                        action = {
+                            LinkAccion(
+                                text = "Ver todos",
+                                onClick = onVerTodosClick
+                            )
+                        }
+                    )
 
-                // Muestra las acciones usando el componente ListaTarjetasAccion
-                ListaTarjetasAccion(
-                    onAccederClick = onEditarTrabajosClick,
-                    onEliminarClick = onEliminarTrabajosClick,
-                    onCreateClick = onCreateProjectClick
-                )
-            }
+                    // Muestra los primeros 3 proyectos usando el componente ListaTarjetasProyecto
+                    val proyectosRecientes = uiState.clientes.take(3)
+                    ListaTarjetasTrabajo(
+                        clientes = proyectosRecientes,
+                        encargos = uiState.encargos,
+                        onClienteClick = { cliente ->
+                            onClienteClick(cliente)
+                        }
+                    )
+                }
+                // 3. ACCIONES PRINCIPALES
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    TituloSeccion(
+                        title = "Acciones principales",
+                        icon = Icons.Default.Work
+                    )
 
-            // 4. HERRAMIENTAS
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                TituloSeccion(
-                    title = "Herramientas",
-                    icon = Icons.Default.Build
-                )
+                    // Muestra las acciones usando el componente ListaTarjetasAccion
+                    ListaTarjetasAccion(
+                        onAccederClick = onEditarTrabajosClick,
+                        onEliminarClick = onEliminarTrabajosClick,
+                        onCreateClick = onCreateProjectClick
+                    )
+                }
 
-                ListaTarjetasHerramienta(
-                    onHerramientaClick = onHerramientaClick
-                )
+                // 4. HERRAMIENTAS
+                Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                    TituloSeccion(
+                        title = "Herramientas",
+                        icon = Icons.Default.Build
+                    )
+
+                    ListaTarjetasHerramienta(
+                        onHerramientaClick = onHerramientaClick
+                    )
+                }
             }
         }
+
+        val avisoActual = uiState.avisoEncargo
+        AvisoFeedbackEncargo(
+            visible = avisoActual != null,
+            tipo = avisoActual?.first ?: TipoAvisoEncargo.CREADO,
+            detalle = avisoActual?.second?.takeIf { it.isNotBlank() },
+            onDismiss = onLimpiarAvisoEncargo,
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .padding(horizontal = 16.dp, vertical = 14.dp)
+        )
     }
 }
 

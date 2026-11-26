@@ -1,8 +1,12 @@
 package com.carpinteria.mitallercarpinteria.ui.vista.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -38,28 +42,45 @@ fun TallerNavGraph(navController: NavHostController, viewModel: TallerViewModel)
 
         // 1. Pantalla Principal
         composable(Routes.principal) {
+            val lifecycleOwner = LocalLifecycleOwner.current
+
             LaunchedEffect(Unit) {
                 viewModel.cargarDatosTaller()
+            }
+
+            DisposableEffect(lifecycleOwner) {
+                val observer = LifecycleEventObserver { _, event ->
+                    if (event == Lifecycle.Event.ON_STOP) {
+                        viewModel.limpiarAvisoEncargo()
+                    }
+                }
+                lifecycleOwner.lifecycle.addObserver(observer)
+                onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
             }
 
             PaginaPrincipal(
                 viewModel = viewModel,
                 onVerTodosClick = {
+                    viewModel.limpiarAvisoEncargo()
                     navController.navigate("lista/${ModoTarjetaTrabajo.COMPLETA.name}")
                 },
                 onEditarTrabajosClick = {
+                    viewModel.limpiarAvisoEncargo()
                     navController.navigate("lista/${ModoTarjetaTrabajo.SOLO_EDITAR.name}")
                 },
                 onEliminarTrabajosClick = {
+                    viewModel.limpiarAvisoEncargo()
                     navController.navigate("lista/${ModoTarjetaTrabajo.SOLO_ELIMINAR.name}")
                 },
                 onClienteClick = { clienteObj ->
                     val cliente = clienteObj as? ClienteDTO
                     if (cliente != null) {
+                        viewModel.limpiarAvisoEncargo()
                         navController.navigate("detalleProyecto/${cliente.id}")
                     }
                 },
                 onCreateProjectClick = {
+                    viewModel.limpiarAvisoEncargo()
                     navController.navigate(Routes.irAWizard())
                 }
             )
@@ -79,18 +100,43 @@ fun TallerNavGraph(navController: NavHostController, viewModel: TallerViewModel)
             }
 
             val trabajosViewModel: TrabajosViewModel = viewModel()
-            LaunchedEffect(Unit) {
-                trabajosViewModel.cargarClientes()
+            val lifecycleOwner = LocalLifecycleOwner.current
+
+            DisposableEffect(lifecycleOwner) {
+                val observer = LifecycleEventObserver { _, event ->
+                    when (event) {
+                        Lifecycle.Event.ON_RESUME -> trabajosViewModel.cargarClientes()
+                        Lifecycle.Event.ON_STOP -> {
+                            viewModel.limpiarAvisoEncargo()
+                            trabajosViewModel.limpiarAvisoEliminacion()
+                        }
+                        else -> Unit
+                    }
+                }
+                lifecycleOwner.lifecycle.addObserver(observer)
+                onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
             }
 
             PaginaListaTrabajos(
                 modoInicial = modoActual,
                 viewModel = trabajosViewModel,
-                onVolverClick = { navController.popBackStack() },
+                avisoEncargo = tallerUiState.avisoEncargo,
+                onLimpiarAvisoEncargo = viewModel::limpiarAvisoEncargo,
+                onVolverClick = {
+                    viewModel.limpiarAvisoEncargo()
+                    trabajosViewModel.limpiarAvisoEliminacion()
+                    if (navController.currentDestination?.route == Routes.lista) {
+                        navController.popBackStack()
+                    }
+                },
                 onClienteSeleccionado = { cliente ->
+                    viewModel.limpiarAvisoEncargo()
+                    trabajosViewModel.limpiarAvisoEliminacion()
                     navController.navigate("detalleProyecto/${cliente.id}")
                 },
                 onEditarCliente = { cliente ->
+                    viewModel.limpiarAvisoEncargo()
+                    trabajosViewModel.limpiarAvisoEliminacion()
                     navController.navigate(Routes.irAWizard(cliente.id))
                 }
             )
@@ -103,11 +149,30 @@ fun TallerNavGraph(navController: NavHostController, viewModel: TallerViewModel)
         ) { backStackEntry ->
             val idProyecto = backStackEntry.arguments?.getLong("idProyecto") ?: return@composable
             val clienteSeleccionado = tallerUiState.clientes.find { it.id == idProyecto }
+            val lifecycleOwner = LocalLifecycleOwner.current
+
+            DisposableEffect(lifecycleOwner) {
+                val observer = LifecycleEventObserver { _, event ->
+                    if (event == Lifecycle.Event.ON_STOP) {
+                        viewModel.limpiarAvisoEncargo()
+                    }
+                }
+                lifecycleOwner.lifecycle.addObserver(observer)
+                onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+            }
 
             PaginaDetalleTrabajo(
                 cliente = clienteSeleccionado,
-                onVolverClick = { navController.popBackStack() },
+                avisoEncargo = tallerUiState.avisoEncargo,
+                onLimpiarAvisoEncargo = viewModel::limpiarAvisoEncargo,
+                onVolverClick = {
+                    viewModel.limpiarAvisoEncargo()
+                    if (navController.currentDestination?.route == Routes.detalleProyecto) {
+                        navController.popBackStack()
+                    }
+                },
                 onEditarClick = { cliente ->
+                    viewModel.limpiarAvisoEncargo()
                     navController.navigate(Routes.irAWizard(cliente.id))
                 }
             )
@@ -124,7 +189,8 @@ fun TallerNavGraph(navController: NavHostController, viewModel: TallerViewModel)
             )
         ) { backStackEntry ->
             val idProyecto = backStackEntry.arguments?.getLong("idProyecto") ?: -1L
-            val clienteInicial = if (idProyecto != -1L) {
+            val esEdicion = idProyecto != -1L
+            val clienteInicial = if (esEdicion) {
                 tallerUiState.clientes.find { it.id == idProyecto }
             } else {
                 null
@@ -132,10 +198,21 @@ fun TallerNavGraph(navController: NavHostController, viewModel: TallerViewModel)
 
             PaginaFormularioTrabajoWizard(
                 clienteInicial = clienteInicial,
-                onCancelarClick = { navController.popBackStack() },
+                onCancelarClick = {
+                    if (navController.currentDestination?.route == Routes.wizard) {
+                        navController.popBackStack()
+                    }
+                },
                 onGuardadoExitoso = {
-                    viewModel.cargarDatosTaller()
-                    navController.popBackStack()
+                    if (navController.currentDestination?.route == Routes.wizard) {
+                        val tituloAviso = clienteInicial?.titulosEncargos?.firstOrNull()
+                            ?: clienteInicial?.nombre
+                        viewModel.notificarGuardadoEncargo(
+                            esEdicion = esEdicion,
+                            detalle = tituloAviso
+                        )
+                        navController.popBackStack()
+                    }
                 }
             )
         }

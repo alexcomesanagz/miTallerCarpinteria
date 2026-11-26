@@ -81,6 +81,10 @@ class TrabajosViewModel : ViewModel() {
 
     fun confirmarEliminacion(cliente: ClienteDTO) {
         val idCliente = cliente.id ?: return
+        val nombreTrabajo = cliente.titulosEncargos?.firstOrNull()?.takeIf { it.isNotBlank() }
+            ?: cliente.nombre
+            ?: "Trabajo"
+
         viewModelScope.launch {
             repositorio.eliminarCliente(
                 idCliente = idCliente,
@@ -91,7 +95,8 @@ class TrabajosViewModel : ViewModel() {
                         currentState.copy(
                             clientes = nuevaListaClientes,
                             clientesFiltrados = nuevaListaFiltrada,
-                            clienteAEliminar = null
+                            clienteAEliminar = null,
+                            avisoEliminacion = nombreTrabajo
                         )
                     }
                 },
@@ -100,5 +105,9 @@ class TrabajosViewModel : ViewModel() {
                 }
             )
         }
+    }
+
+    fun limpiarAvisoEliminacion() {
+        _uiState.update { it.copy(avisoEliminacion = null) }
     }
 }

@@ -19,7 +19,10 @@ class WizardTrabajoViewModel : ViewModel() {
 
     private val repositorio = TallerRepoGeneral.repo
 
+    private var guardadoEnCurso = false
+
     fun inicializar(clienteInicial: ClienteDTO?) {
+        guardadoEnCurso = false
         _uiState.value = WizardTrabajoUiState(
             pasoActual = 1,
             esEdicion = clienteInicial != null,
@@ -177,6 +180,9 @@ class WizardTrabajoViewModel : ViewModel() {
     }
 
     private fun guardarEnBaseDeDatos(onGuardadoExitoso: () -> Unit) {
+        if (guardadoEnCurso || _uiState.value.guardando) return
+        guardadoEnCurso = true
+
         val form = _uiState.value.formulario
         viewModelScope.launch {
             _uiState.update { it.copy(guardando = true) }
@@ -188,6 +194,7 @@ class WizardTrabajoViewModel : ViewModel() {
                 },
                 onError = {
                     _uiState.update { it.copy(guardando = false) }
+                    guardadoEnCurso = false
                 }
             )
         }

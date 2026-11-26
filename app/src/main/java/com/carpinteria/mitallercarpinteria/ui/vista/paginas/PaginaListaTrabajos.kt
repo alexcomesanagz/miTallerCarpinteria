@@ -1,11 +1,11 @@
 package com.carpinteria.mitallercarpinteria.ui.vista.paginas
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -22,39 +22,46 @@ import com.carpinteria.mitallercarpinteria.ui.viewModels.vm.TrabajosViewModel
 fun PaginaListaTrabajos(
     viewModel: TrabajosViewModel = viewModel(),
     modoInicial: ModoTarjetaTrabajo = ModoTarjetaTrabajo.COMPLETA,
+    avisoEncargo: Pair<TipoAvisoEncargo, String>? = null,
+    onLimpiarAvisoEncargo: () -> Unit = {},
     onVolverClick: () -> Unit = {},
     onClienteSeleccionado: (ClienteDTO) -> Unit = {},
     onEditarCliente: (ClienteDTO) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    // Sincroniza el modo con el que se abrió la pantalla
     LaunchedEffect(modoInicial) {
         viewModel.establecerModo(modoInicial)
     }
 
     PaginaListaTrabajosContent(
         uiState = uiState,
+        avisoEncargo = avisoEncargo,
+        onLimpiarAvisoEncargo = onLimpiarAvisoEncargo,
         onVolverClick = onVolverClick,
         onBuscarChange = { texto -> viewModel.onBuscarChange(texto) },
         onClienteSeleccionado = onClienteSeleccionado,
         onEditarCliente = onEditarCliente,
         onEliminarClick = { cliente -> viewModel.seleccionarClienteParaEliminar(cliente) },
         onConfirmarEliminacion = { cliente -> viewModel.confirmarEliminacion(cliente) },
-        onDescartarEliminacion = { viewModel.seleccionarClienteParaEliminar(null) }
+        onDescartarEliminacion = { viewModel.seleccionarClienteParaEliminar(null) },
+        onLimpiarAvisoEliminacion = viewModel::limpiarAvisoEliminacion
     )
 }
 
 @Composable
 fun PaginaListaTrabajosContent(
     uiState: TrabajosUiState,
+    avisoEncargo: Pair<TipoAvisoEncargo, String>? = null,
+    onLimpiarAvisoEncargo: () -> Unit = {},
     onVolverClick: () -> Unit = {},
     onBuscarChange: (String) -> Unit = {},
     onClienteSeleccionado: (ClienteDTO) -> Unit = {},
     onEditarCliente: (ClienteDTO) -> Unit = {},
     onEliminarClick: (ClienteDTO) -> Unit = {},
     onConfirmarEliminacion: (ClienteDTO) -> Unit = {},
-    onDescartarEliminacion: () -> Unit = {}
+    onDescartarEliminacion: () -> Unit = {},
+    onLimpiarAvisoEliminacion: () -> Unit = {}
 ) {
     val tipoAvisoActual = when (uiState.modoActual) {
         ModoTarjetaTrabajo.COMPLETA -> TipoAviso.ACCEDER
@@ -62,51 +69,82 @@ fun PaginaListaTrabajosContent(
         ModoTarjetaTrabajo.SOLO_ELIMINAR -> TipoAviso.ELIMINAR
     }
 
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .background(FondoCrema)
     ) {
-        HeaderSeccion(
-            titleTop = "GESTIÓN DE TRABAJOS",
-            titleMain = when (uiState.modoActual) {
-                ModoTarjetaTrabajo.SOLO_ELIMINAR -> "Eliminar Trabajos"
-                ModoTarjetaTrabajo.SOLO_EDITAR -> "Editar Trabajos"
-                ModoTarjetaTrabajo.COMPLETA -> "Lista de Trabajos"
-            },
-            showBackButton = true,
-            onBackClick = onVolverClick
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            modifier = Modifier.fillMaxSize()
         ) {
-            SeccionBusquedaYAviso(
-                tituloBusqueda = "Buscar un trabajo",
-                onBuscarChange = onBuscarChange,
-                Tooltip = {
-                    TarjetaAvisoInstruccion(tipo = tipoAvisoActual)
-                }
+            HeaderSeccion(
+                titleTop = "GESTIÓN DE TRABAJOS",
+                titleMain = when (uiState.modoActual) {
+                    ModoTarjetaTrabajo.SOLO_ELIMINAR -> "Eliminar Trabajos"
+                    ModoTarjetaTrabajo.SOLO_EDITAR -> "Editar Trabajos"
+                    ModoTarjetaTrabajo.COMPLETA -> "Lista de Trabajos"
+                },
+                showBackButton = true,
+                onBackClick = onVolverClick
             )
 
-            ListaTarjetasTrabajo(
-                clientes = uiState.clientesFiltrados,
-                encargos = uiState.encargos,
-                modo = uiState.modoActual,
-                onClienteClick = onClienteSeleccionado,
-                onEditarClick = onEditarCliente,
-                onEliminarClick = onEliminarClick
-            )
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                SeccionBusquedaYAviso(
+                    tituloBusqueda = "Buscar un trabajo",
+                    onBuscarChange = onBuscarChange,
+                    Tooltip = {
+                        TarjetaAvisoInstruccion(tipo = tipoAvisoActual)
+                    }
+                )
+
+                ListaTarjetasTrabajo(
+                    clientes = uiState.clientesFiltrados,
+                    encargos = uiState.encargos,
+                    modo = uiState.modoActual,
+                    onClienteClick = onClienteSeleccionado,
+                    onEditarClick = onEditarCliente,
+                    onEliminarClick = onEliminarClick
+                )
+            }
         }
+
+        val mostrarEliminado = uiState.avisoEliminacion != null
+        val tipoAvisoFeedback = if (mostrarEliminado) {
+            TipoAvisoEncargo.ELIMINADO
+        } else {
+            avisoEncargo?.first ?: TipoAvisoEncargo.ACTUALIZADO
+        }
+        val detalleAvisoFeedback = if (mostrarEliminado) {
+            uiState.avisoEliminacion
+        } else {
+            avisoEncargo?.second?.takeIf { it.isNotBlank() }
+        }
+
+        AvisoFeedbackEncargo(
+            visible = mostrarEliminado || avisoEncargo != null,
+            tipo = tipoAvisoFeedback,
+            detalle = detalleAvisoFeedback,
+            onDismiss = {
+                if (mostrarEliminado) {
+                    onLimpiarAvisoEliminacion()
+                } else {
+                    onLimpiarAvisoEncargo()
+                }
+            },
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .padding(horizontal = 16.dp, vertical = 14.dp)
+        )
     }
 
-    // Diálogo de confirmación de borrado
     uiState.clienteAEliminar?.let { cliente ->
         DialogoConfirmarEliminar(
             tituloProyecto = cliente.titulosEncargos?.firstOrNull() ?: "Trabajo sin título",
@@ -115,8 +153,6 @@ fun PaginaListaTrabajosContent(
         )
     }
 }
-
-// PREVIEWS
 
 @Preview(showBackground = true, backgroundColor = 0xFFFFF8E8)
 @Composable

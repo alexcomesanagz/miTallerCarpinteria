@@ -11,6 +11,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.carpinteria.mitallercarpinteria.ui.theme.*
@@ -158,3 +159,32 @@ fun SelectorFechaEntrega(
         }
     }
 }
+
+@Preview(showBackground = true, backgroundColor = 0xFFFFF8E8, name = "Selector fecha - Vacío")
+@Composable
+fun SelectorFechaEntregaVacioPreview() {
+    MiTallerCarpinteriaTheme {
+        Box(modifier = Modifier.padding(16.dp)) {
+            SelectorFechaEntrega(
+                fechaEntrega = "",
+                fechaCreacion = "2026-11-25",
+                onFechaSeleccionada = {}
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true, backgroundColor = 0xFFFFF8E8, name = "Selector fecha - Con fecha")
+@Composable
+fun SelectorFechaEntregaConFechaPreview() {
+    MiTallerCarpinteriaTheme {
+        Box(modifier = Modifier.padding(16.dp)) {
+            SelectorFechaEntrega(
+                fechaEntrega = "2026-12-15",
+                fechaCreacion = "2026-11-25",
+                onFechaSeleccionada = {}
+            )
+        }
+    }
+}
+

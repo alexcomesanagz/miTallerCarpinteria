@@ -8,6 +8,9 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -44,6 +47,7 @@ fun PaginaFormularioTrabajoWizard(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    var guardadoDisparado by remember(clienteInicial?.id) { mutableStateOf(false) }
 
     val selectorFotosLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickMultipleVisualMedia()
@@ -56,15 +60,27 @@ fun PaginaFormularioTrabajoWizard(
         }
     }
 
-    LaunchedEffect(clienteInicial) {
+    LaunchedEffect(clienteInicial?.id) {
+        guardadoDisparado = false
         viewModel.inicializar(clienteInicial)
+    }
+
+    val manejarGuardadoExitoso: () -> Unit = {
+        if (!guardadoDisparado) {
+            guardadoDisparado = true
+            onGuardadoExitoso()
+        }
     }
 
     ScaffoldPasoWizard(
         paso = uiState.pasoActual,
         esEdicion = uiState.esEdicion,
         onAtrasClick = { viewModel.retrocederPaso(onSalirWizard = onCancelarClick) },
-        onSiguienteOGuardarClick = { viewModel.avanzarPasoOGuardar(onGuardadoExitoso = onGuardadoExitoso) }
+        onSiguienteOGuardarClick = {
+            if (!uiState.guardando && !guardadoDisparado) {
+                viewModel.avanzarPasoOGuardar(onGuardadoExitoso = manejarGuardadoExitoso)
+            }
+        }
     ) {
         when (uiState.pasoActual) {
             1 -> PaginaPaso1Cliente(
