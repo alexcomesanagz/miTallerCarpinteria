@@ -18,12 +18,14 @@ class TallerViewModel(application: Application) : AndroidViewModel(application) 
     private val _uiState = MutableStateFlow(TallerUiState())
     val uiState: StateFlow<TallerUiState> = _uiState.asStateFlow()
 
+    private val _actividadClientes = MutableStateFlow(emptyMap<Long, Long>())
+    val actividadClientes: StateFlow<Map<Long, Long>> = _actividadClientes.asStateFlow()
+
     private val context: Context?
         get() = getApplication<Application>().applicationContext
 
     val tallerRepo = TallerRepoGeneral.repo
 
-    private val actividadPorCliente = mutableMapOf<Long, Long>()
     private var contadorActividad = 0L
 
     init {
@@ -33,11 +35,12 @@ class TallerViewModel(application: Application) : AndroidViewModel(application) 
     fun registrarActividadCliente(idCliente: Long?) {
         if (idCliente == null) return
         contadorActividad += 1L
-        actividadPorCliente[idCliente] = contadorActividad
+        val nuevoMapa = _actividadClientes.value + (idCliente to contadorActividad)
+        _actividadClientes.value = nuevoMapa
 
         _uiState.update { current ->
             current.copy(
-                clientes = ordenarClientesPorActividad(current.clientes)
+                clientes = ordenarClientesPorActividad(current.clientes, nuevoMapa)
             )
         }
     }
@@ -47,9 +50,10 @@ class TallerViewModel(application: Application) : AndroidViewModel(application) 
 
         tallerRepo.obtenerClientes(
             onSuccess = { listaClientes ->
+                val mapaActual = _actividadClientes.value
                 _uiState.update {
                     it.copy(
-                        clientes = ordenarClientesPorActividad(listaClientes),
+                        clientes = ordenarClientesPorActividad(listaClientes, mapaActual),
                         isLoading = false
                     )
                 }
@@ -96,9 +100,13 @@ class TallerViewModel(application: Application) : AndroidViewModel(application) 
         val nuevoAviso = tipo to (detalle ?: "")
         Log.d("AVISO_DEBUG", "notificarGuardadoEncargo -> esEdicion=$esEdicion, detalle=$detalle")
 
-        if (idClienteAfectado != null) {
+        val mapaActual = if (idClienteAfectado != null) {
             contadorActividad += 1L
-            actividadPorCliente[idClienteAfectado] = contadorActividad
+            (_actividadClientes.value + (idClienteAfectado to contadorActividad)).also {
+                _actividadClientes.value = it
+            }
+        } else {
+            _actividadClientes.value
         }
 
         _uiState.update { current ->
@@ -112,11 +120,32 @@ class TallerViewModel(application: Application) : AndroidViewModel(application) 
 
         tallerRepo.obtenerClientes(
             onSuccess = { listaClientes ->
-                // Si se creó un cliente nuevo y no teníamos su id aún, el primero nuevo suele quedar arriba
-                val ordenada = ordenarClientesPorActividad(listaClientes)
+                val idsPrevios = _uiState.value.clientes.mapNotNull { it.id }.toSet()
+                val mapaFinal = if (idClienteAfectado == null) {
+                    val nuevosClientes = listaClientes.filter { cliente ->
+                        val id = cliente.id
+                        id != null && id !in idsPrevios
+                    }
+                    if (nuevosClientes.isNotEmpty()) {
+                        var mapaTemp = _actividadClientes.value
+                        nuevosClientes.forEach { nuevo ->
+                            nuevo.id?.let { idNuevo ->
+                                contadorActividad += 1L
+                                mapaTemp = mapaTemp + (idNuevo to contadorActividad)
+                            }
+                        }
+                        _actividadClientes.value = mapaTemp
+                        mapaTemp
+                    } else {
+                        mapaActual
+                    }
+                } else {
+                    mapaActual
+                }
+
                 _uiState.update {
                     it.copy(
-                        clientes = ordenada,
+                        clientes = ordenarClientesPorActividad(listaClientes, mapaFinal),
                         isLoading = false
                     )
                 }
@@ -134,14 +163,27 @@ class TallerViewModel(application: Application) : AndroidViewModel(application) 
         )
     }
 
-    private fun ordenarClientesPorActividad(clientes: List<ClienteDTO>): List<ClienteDTO> {
-        if (actividadPorCliente.isEmpty()) return clientes
+    private fun ordenarClientesPorActividad(
+        clientes: List<ClienteDTO>,
+        mapaActividad: Map<Long, Long>
+    ): List<ClienteDTO> {
+        if (mapaActividad.isEmpty()) return clientes
         return clientes.mapIndexed { indiceOriginal, cliente ->
-            val puntaje = actividadPorCliente[cliente.id] ?: 0L
+            val puntaje = mapaActividad[cliente.id] ?: 0L
             Triple(cliente, puntaje, indiceOriginal)
         }.sortedWith(
             compareByDescending<Triple<ClienteDTO, Long, Int>> { it.second }
                 .thenBy { it.third }
         ).map { it.first }
+    }
+
+    fun eliminarActividadCliente(idCliente: Long?) {
+        if (idCliente == null) return
+        _actividadClientes.update { mapa -> mapa - idCliente }
+        _uiState.update { current ->
+            current.copy(
+                clientes = current.clientes.filter { it.id != idCliente }
+            )
+        }
     }
 }

@@ -19,20 +19,16 @@ class TrabajosViewModel : ViewModel() {
     val uiState: StateFlow<TrabajosUiState> = _uiState.asStateFlow()
 
     private val repositorio = TallerRepoGeneral.repo
-    private val actividadPorCliente = mutableMapOf<Long, Long>()
-    private var contadorActividad = 0L
+    private var actividadExterna: Map<Long, Long> = emptyMap()
 
     init {
         cargarClientes()
     }
 
-    fun registrarActividadCliente(idCliente: Long?) {
-        if (idCliente == null) return
-        contadorActividad += 1L
-        actividadPorCliente[idCliente] = contadorActividad
-
+    fun aplicarOrdenActividad(mapaActividad: Map<Long, Long>) {
+        actividadExterna = mapaActividad
         _uiState.update { current ->
-            val clientesOrdenados = ordenarClientesPorActividad(current.clientes)
+            val clientesOrdenados = ordenarClientesPorActividad(current.clientes, actividadExterna)
             current.copy(
                 clientes = clientesOrdenados,
                 clientesFiltrados = filtrarClientes(
@@ -44,11 +40,17 @@ class TrabajosViewModel : ViewModel() {
         }
     }
 
+    fun registrarActividadCliente(idCliente: Long?) {
+        if (idCliente == null) return
+        val siguientePuntaje = (actividadExterna.values.maxOrNull() ?: 0L) + 1L
+        aplicarOrdenActividad(actividadExterna + (idCliente to siguientePuntaje))
+    }
+
     fun cargarClientes() {
         _uiState.update { it.copy(isLoading = true) }
         repositorio.obtenerClientes(
             onSuccess = { lista ->
-                val ordenada = ordenarClientesPorActividad(lista)
+                val ordenada = ordenarClientesPorActividad(lista, actividadExterna)
                 _uiState.update { current ->
                     current.copy(
                         clientes = ordenada,
@@ -127,10 +129,13 @@ class TrabajosViewModel : ViewModel() {
         }
     }
 
-    private fun ordenarClientesPorActividad(clientes: List<ClienteDTO>): List<ClienteDTO> {
-        if (actividadPorCliente.isEmpty()) return clientes
+    private fun ordenarClientesPorActividad(
+        clientes: List<ClienteDTO>,
+        mapaActividad: Map<Long, Long>
+    ): List<ClienteDTO> {
+        if (mapaActividad.isEmpty()) return clientes
         return clientes.mapIndexed { indiceOriginal, cliente ->
-            val puntaje = actividadPorCliente[cliente.id] ?: 0L
+            val puntaje = mapaActividad[cliente.id] ?: 0L
             Triple(cliente, puntaje, indiceOriginal)
         }.sortedWith(
             compareByDescending<Triple<ClienteDTO, Long, Int>> { it.second }
@@ -152,7 +157,7 @@ class TrabajosViewModel : ViewModel() {
             repositorio.eliminarCliente(
                 idCliente = idCliente,
                 onSuccess = {
-                    actividadPorCliente.remove(idCliente)
+                    actividadExterna = actividadExterna - idCliente
                     _uiState.update { currentState ->
                         val nuevaListaClientes = currentState.clientes.filter { it.id != idCliente }
                         val nuevaListaFiltrada = currentState.clientesFiltrados.filter { it.id != idCliente }

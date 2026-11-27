@@ -43,6 +43,7 @@ object Routes {
 fun TallerNavGraph(navController: NavHostController, viewModel: TallerViewModel) {
 
     val tallerUiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val actividadMapa by viewModel.actividadClientes.collectAsStateWithLifecycle()
 
     NavHost(navController = navController, startDestination = Routes.principal) {
 
@@ -56,8 +57,10 @@ fun TallerNavGraph(navController: NavHostController, viewModel: TallerViewModel)
 
             DisposableEffect(lifecycleOwner) {
                 val observer = LifecycleEventObserver { _, event ->
-                    if (event == Lifecycle.Event.ON_STOP) {
-                        viewModel.limpiarAvisoEncargo()
+                    when (event) {
+                        Lifecycle.Event.ON_RESUME -> viewModel.cargarDatosTaller()
+                        Lifecycle.Event.ON_STOP -> viewModel.limpiarAvisoEncargo()
+                        else -> Unit
                     }
                 }
                 lifecycleOwner.lifecycle.addObserver(observer)
@@ -107,7 +110,18 @@ fun TallerNavGraph(navController: NavHostController, viewModel: TallerViewModel)
             }
 
             val trabajosViewModel: TrabajosViewModel = viewModel()
+            val trabajosUiState by trabajosViewModel.uiState.collectAsStateWithLifecycle()
             val lifecycleOwner = LocalLifecycleOwner.current
+
+            LaunchedEffect(trabajosUiState.avisoEliminacion) {
+                if (trabajosUiState.avisoEliminacion != null) {
+                    viewModel.cargarDatosTaller()
+                }
+            }
+
+            LaunchedEffect(actividadMapa, trabajosViewModel) {
+                trabajosViewModel.aplicarOrdenActividad(actividadMapa)
+            }
 
             DisposableEffect(lifecycleOwner) {
                 val observer = LifecycleEventObserver { _, event ->
