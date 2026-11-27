@@ -17,7 +17,9 @@ import com.carpinteria.mitallercarpinteria.ui.theme.TextDarkBrown
 fun SeccionBusquedaYAviso(
     modifier: Modifier = Modifier,
     tituloBusqueda: String = "Buscar un trabajo",
+    query: String = "",
     onBuscarChange: (String) -> Unit = {},
+    onLimpiarBusqueda: () -> Unit = {},
     // Permite pasar cualquier componente opcional abajo (por defecto usa el ToolTip de aviso)
     Tooltip: @Composable () -> Unit = { TarjetaAvisoInstruccion() }
 ) {
@@ -34,7 +36,9 @@ fun SeccionBusquedaYAviso(
 
         // Subcomponente búsqueda
         BarraBusquedaProyecto(
-            // onQueryChange = onBuscarChange
+            query = query,
+            onQueryChange = onBuscarChange,
+            onClearQuery = onLimpiarBusqueda
         )
 
         // Contenido inferior (ToolTip de aviso)

@@ -6,8 +6,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -16,8 +14,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.carpinteria.mitallercarpinteria.data.model.ClienteDTO
 import com.carpinteria.mitallercarpinteria.data.model.EncargoDTO
-import com.carpinteria.mitallercarpinteria.ui.theme.GreenStatusBg
-import com.carpinteria.mitallercarpinteria.ui.theme.GreenStatusText
 import com.carpinteria.mitallercarpinteria.ui.theme.MiTallerCarpinteriaTheme
 import com.carpinteria.mitallercarpinteria.ui.theme.TextDarkBrown
 
@@ -37,19 +33,20 @@ fun ListaTarjetasTrabajo(
     ) {
         if (clientes.isEmpty()) {
             Text(
-                text = "No hay proyectos recientes disponibles.",
+                text = "No hay proyectos disponibles.",
                 fontSize = 14.sp,
                 color = TextDarkBrown.copy(alpha = 0.7f)
             )
         } else {
             clientes.forEach { cliente ->
-                val estadoEncargo = encargos.find{ it.clienteId == cliente.id}?.estado ?: "En curso"
+                val estadoEncargo = encargos.find { it.clienteId == cliente.id }?.estado ?: "En curso"
+                val (estadoBg, estadoTextColor) = resolverColoresEstado(estadoEncargo)
                 TarjetaTrabajo(
                     titulo = cliente.titulosEncargos?.firstOrNull() ?: "Sin proyectos",
                     cliente = cliente.nombre ?: "Sin nombre",
                     estado = estadoEncargo,
-                    estadoBg = GreenStatusBg,
-                    estadoTextColor = GreenStatusText,
+                    estadoBg = estadoBg,
+                    estadoTextColor = estadoTextColor,
                     modo = modo,
                     onClick = {
                         Log.d("ProjectList", "Clic en cliente: ${cliente.nombre}")

@@ -4,8 +4,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -18,16 +20,20 @@ import androidx.compose.ui.unit.dp
 import com.carpinteria.mitallercarpinteria.ui.theme.CardBorder
 import com.carpinteria.mitallercarpinteria.ui.theme.MiTallerCarpinteriaTheme
 import com.carpinteria.mitallercarpinteria.ui.theme.MutedBrown
+import com.carpinteria.mitallercarpinteria.ui.theme.RedAlertText
 import com.carpinteria.mitallercarpinteria.ui.theme.TextDarkBrown
 
 @Composable
 fun BarraBusquedaProyecto(
+    query: String = "",
+    onQueryChange: (String) -> Unit = {},
+    onClearQuery: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     OutlinedTextField(
-        value = "",
-        onValueChange = {},
-        enabled = false, // Desactivado por ahora por tiempo
+        value = query,
+        onValueChange = onQueryChange,
+        singleLine = true,
         placeholder = {
             Text(
                 text = "Nombre del trabajo o cliente",
@@ -38,18 +44,33 @@ fun BarraBusquedaProyecto(
         leadingIcon = {
             Icon(
                 imageVector = Icons.Default.Search,
-                contentDescription = null,
+                contentDescription = "Buscar",
                 tint = TextDarkBrown
             )
+        },
+        trailingIcon = {
+            if (query.isNotEmpty()) {
+                IconButton(onClick = onClearQuery) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Borrar búsqueda",
+                        tint = RedAlertText
+                    )
+                }
+            }
         },
         modifier = modifier
             .fillMaxWidth()
             .height(60.dp),
         shape = RoundedCornerShape(16.dp),
         colors = OutlinedTextFieldDefaults.colors(
-            disabledContainerColor = Color.White,
-            disabledBorderColor = CardBorder,
-            disabledPlaceholderColor = MutedBrown
+            focusedContainerColor = Color.White,
+            unfocusedContainerColor = Color.White,
+            focusedBorderColor = TextDarkBrown,
+            unfocusedBorderColor = CardBorder,
+            focusedTextColor = TextDarkBrown,
+            unfocusedTextColor = TextDarkBrown,
+            cursorColor = TextDarkBrown
         )
     )
 }

@@ -40,6 +40,7 @@ fun PaginaListaTrabajos(
         onLimpiarAvisoEncargo = onLimpiarAvisoEncargo,
         onVolverClick = onVolverClick,
         onBuscarChange = { texto -> viewModel.onBuscarChange(texto) },
+        onLimpiarBusqueda = { viewModel.limpiarBusqueda() },
         onClienteSeleccionado = onClienteSeleccionado,
         onEditarCliente = onEditarCliente,
         onEliminarClick = { cliente -> viewModel.seleccionarClienteParaEliminar(cliente) },
@@ -56,6 +57,7 @@ fun PaginaListaTrabajosContent(
     onLimpiarAvisoEncargo: () -> Unit = {},
     onVolverClick: () -> Unit = {},
     onBuscarChange: (String) -> Unit = {},
+    onLimpiarBusqueda: () -> Unit = {},
     onClienteSeleccionado: (ClienteDTO) -> Unit = {},
     onEditarCliente: (ClienteDTO) -> Unit = {},
     onEliminarClick: (ClienteDTO) -> Unit = {},
@@ -99,7 +101,9 @@ fun PaginaListaTrabajosContent(
             ) {
                 SeccionBusquedaYAviso(
                     tituloBusqueda = "Buscar un trabajo",
+                    query = uiState.textoBusqueda,
                     onBuscarChange = onBuscarChange,
+                    onLimpiarBusqueda = onLimpiarBusqueda,
                     Tooltip = {
                         TarjetaAvisoInstruccion(tipo = tipoAvisoActual)
                     }

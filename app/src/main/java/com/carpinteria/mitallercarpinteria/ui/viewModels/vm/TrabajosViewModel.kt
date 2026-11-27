@@ -3,6 +3,7 @@ package com.carpinteria.mitallercarpinteria.ui.viewModels.vm
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.carpinteria.mitallercarpinteria.data.model.ClienteDTO
+import com.carpinteria.mitallercarpinteria.data.model.EncargoDTO
 import com.carpinteria.mitallercarpinteria.data.repositorio.objetosRepo.TallerRepoGeneral
 import com.carpinteria.mitallercarpinteria.ui.componentes.ModoTarjetaTrabajo
 import com.carpinteria.mitallercarpinteria.ui.viewModels.Uis.TrabajosUiState
@@ -28,10 +29,14 @@ class TrabajosViewModel : ViewModel() {
         _uiState.update { it.copy(isLoading = true) }
         repositorio.obtenerClientes(
             onSuccess = { lista ->
-                _uiState.update {
-                    it.copy(
+                _uiState.update { current ->
+                    current.copy(
                         clientes = lista,
-                        clientesFiltrados = lista,
+                        clientesFiltrados = filtrarClientes(
+                            clientes = lista,
+                            encargos = current.encargos,
+                            texto = current.textoBusqueda
+                        ),
                         isLoading = false
                     )
                 }
@@ -43,8 +48,15 @@ class TrabajosViewModel : ViewModel() {
 
         repositorio.obtenerEncargos(
             onSuccess = { listaEncargos ->
-                _uiState.update {
-                    it.copy(encargos = listaEncargos)
+                _uiState.update { current ->
+                    current.copy(
+                        encargos = listaEncargos,
+                        clientesFiltrados = filtrarClientes(
+                            clientes = current.clientes,
+                            encargos = listaEncargos,
+                            texto = current.textoBusqueda
+                        )
+                    )
                 }
             },
             onError = {}
@@ -59,18 +71,41 @@ class TrabajosViewModel : ViewModel() {
     // Filtrar la lista al escribir en el buscador
     fun onBuscarChange(texto: String) {
         _uiState.update { currentState ->
-            val filtrados = if (texto.isBlank()) {
-                currentState.clientes
-            } else {
-                currentState.clientes.filter { cliente ->
-                    cliente.nombre?.contains(texto, ignoreCase = true) == true ||
-                            cliente.titulosEncargos?.any { it.contains(texto, ignoreCase = true) } == true
-                }
-            }
             currentState.copy(
                 textoBusqueda = texto,
-                clientesFiltrados = filtrados
+                clientesFiltrados = filtrarClientes(
+                    clientes = currentState.clientes,
+                    encargos = currentState.encargos,
+                    texto = texto
+                )
             )
+        }
+    }
+
+    fun limpiarBusqueda() {
+        onBuscarChange("")
+    }
+
+    private fun filtrarClientes(
+        clientes: List<ClienteDTO>,
+        encargos: List<EncargoDTO>,
+        texto: String
+    ): List<ClienteDTO> {
+        val consulta = texto.trim()
+        if (consulta.isBlank()) return clientes
+
+        return clientes.filter { cliente ->
+            val coincideNombre = cliente.nombre?.contains(consulta, ignoreCase = true) == true
+            val coincideTitulo = cliente.titulosEncargos?.any {
+                it.contains(consulta, ignoreCase = true)
+            } == true
+            val coincideEncargo = encargos.any { encargo ->
+                encargo.clienteId == cliente.id && (
+                        encargo.titulo.contains(consulta, ignoreCase = true) ||
+                                encargo.estado.contains(consulta, ignoreCase = true)
+                        )
+            }
+            coincideNombre || coincideTitulo || coincideEncargo
         }
     }
 
