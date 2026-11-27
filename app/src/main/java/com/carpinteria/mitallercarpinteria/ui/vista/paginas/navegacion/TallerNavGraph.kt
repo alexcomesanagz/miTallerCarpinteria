@@ -1,5 +1,6 @@
 package com.carpinteria.mitallercarpinteria.ui.vista.navigation
 
+import android.net.Uri
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -22,15 +23,20 @@ import com.carpinteria.mitallercarpinteria.ui.vista.paginas.PaginaDetalleTrabajo
 import com.carpinteria.mitallercarpinteria.ui.vista.paginas.PaginaFormularioTrabajoWizard
 import com.carpinteria.mitallercarpinteria.ui.vista.paginas.PaginaListaTrabajos
 import com.carpinteria.mitallercarpinteria.ui.vista.paginas.PaginaPrincipal
+import com.carpinteria.mitallercarpinteria.ui.vista.paginas.PaginaVisorFoto
 
 object Routes {
     const val principal = "principal"
     const val lista = "lista/{modo}"
     const val detalleProyecto = "detalleProyecto/{idProyecto}"
     const val wizard = "wizard?idProyecto={idProyecto}"
+    const val visorFoto = "visorFoto?ruta={ruta}"
 
     fun irAWizard(idProyecto: Long? = null): String =
         if (idProyecto != null) "wizard?idProyecto=$idProyecto" else "wizard"
+
+    fun irAVisorFoto(rutaFoto: String): String =
+        "visorFoto?ruta=${Uri.encode(rutaFoto)}"
 }
 
 @Composable
@@ -76,6 +82,7 @@ fun TallerNavGraph(navController: NavHostController, viewModel: TallerViewModel)
                     val cliente = clienteObj as? ClienteDTO
                     if (cliente != null) {
                         viewModel.limpiarAvisoEncargo()
+                        viewModel.registrarActividadCliente(cliente.id)
                         navController.navigate("detalleProyecto/${cliente.id}")
                     }
                 },
@@ -132,11 +139,15 @@ fun TallerNavGraph(navController: NavHostController, viewModel: TallerViewModel)
                 onClienteSeleccionado = { cliente ->
                     viewModel.limpiarAvisoEncargo()
                     trabajosViewModel.limpiarAvisoEliminacion()
+                    viewModel.registrarActividadCliente(cliente.id)
+                    trabajosViewModel.registrarActividadCliente(cliente.id)
                     navController.navigate("detalleProyecto/${cliente.id}")
                 },
                 onEditarCliente = { cliente ->
                     viewModel.limpiarAvisoEncargo()
                     trabajosViewModel.limpiarAvisoEliminacion()
+                    viewModel.registrarActividadCliente(cliente.id)
+                    trabajosViewModel.registrarActividadCliente(cliente.id)
                     navController.navigate(Routes.irAWizard(cliente.id))
                 }
             )
@@ -150,6 +161,10 @@ fun TallerNavGraph(navController: NavHostController, viewModel: TallerViewModel)
             val idProyecto = backStackEntry.arguments?.getLong("idProyecto") ?: return@composable
             val clienteSeleccionado = tallerUiState.clientes.find { it.id == idProyecto }
             val lifecycleOwner = LocalLifecycleOwner.current
+
+            LaunchedEffect(idProyecto) {
+                viewModel.registrarActividadCliente(idProyecto)
+            }
 
             DisposableEffect(lifecycleOwner) {
                 val observer = LifecycleEventObserver { _, event ->
@@ -173,7 +188,12 @@ fun TallerNavGraph(navController: NavHostController, viewModel: TallerViewModel)
                 },
                 onEditarClick = { cliente ->
                     viewModel.limpiarAvisoEncargo()
+                    viewModel.registrarActividadCliente(cliente.id)
                     navController.navigate(Routes.irAWizard(cliente.id))
+                },
+                onAmpliarFotoClick = { rutaFoto ->
+                    viewModel.limpiarAvisoEncargo()
+                    navController.navigate(Routes.irAVisorFoto(rutaFoto))
                 }
             )
         }
@@ -209,8 +229,36 @@ fun TallerNavGraph(navController: NavHostController, viewModel: TallerViewModel)
                             ?: clienteInicial?.nombre
                         viewModel.notificarGuardadoEncargo(
                             esEdicion = esEdicion,
-                            detalle = tituloAviso
+                            detalle = tituloAviso,
+                            idClienteAfectado = clienteInicial?.id
                         )
+                        navController.popBackStack()
+                    }
+                },
+                onAmpliarFotoClick = { rutaFoto ->
+                    viewModel.limpiarAvisoEncargo()
+                    navController.navigate(Routes.irAVisorFoto(rutaFoto))
+                }
+            )
+        }
+
+        // 5. Pantalla Visor de Fotografía Ampliada
+        composable(
+            route = Routes.visorFoto,
+            arguments = listOf(
+                navArgument("ruta") {
+                    type = NavType.StringType
+                    defaultValue = ""
+                }
+            )
+        ) { backStackEntry ->
+            val rutaCodificada = backStackEntry.arguments?.getString("ruta").orEmpty()
+            val rutaDecodificada = Uri.decode(rutaCodificada)
+
+            PaginaVisorFoto(
+                rutaFoto = rutaDecodificada,
+                onCerrarClick = {
+                    if (navController.currentDestination?.route == Routes.visorFoto) {
                         navController.popBackStack()
                     }
                 }

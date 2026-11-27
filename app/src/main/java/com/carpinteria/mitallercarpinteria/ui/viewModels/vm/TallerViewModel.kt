@@ -4,6 +4,7 @@ import android.app.Application
 import android.content.Context
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
+import com.carpinteria.mitallercarpinteria.data.model.ClienteDTO
 import com.carpinteria.mitallercarpinteria.data.repositorio.objetosRepo.TallerRepoGeneral
 import com.carpinteria.mitallercarpinteria.ui.componentes.TipoAvisoEncargo
 import com.carpinteria.mitallercarpinteria.ui.viewModels.Uis.TallerUiState
@@ -22,8 +23,23 @@ class TallerViewModel(application: Application) : AndroidViewModel(application) 
 
     val tallerRepo = TallerRepoGeneral.repo
 
+    private val actividadPorCliente = mutableMapOf<Long, Long>()
+    private var contadorActividad = 0L
+
     init {
         cargarDatosTaller()
+    }
+
+    fun registrarActividadCliente(idCliente: Long?) {
+        if (idCliente == null) return
+        contadorActividad += 1L
+        actividadPorCliente[idCliente] = contadorActividad
+
+        _uiState.update { current ->
+            current.copy(
+                clientes = ordenarClientesPorActividad(current.clientes)
+            )
+        }
     }
 
     fun cargarDatosTaller() {
@@ -33,7 +49,7 @@ class TallerViewModel(application: Application) : AndroidViewModel(application) 
             onSuccess = { listaClientes ->
                 _uiState.update {
                     it.copy(
-                        clientes = listaClientes,
+                        clientes = ordenarClientesPorActividad(listaClientes),
                         isLoading = false
                     )
                 }
@@ -71,15 +87,61 @@ class TallerViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
-    fun notificarGuardadoEncargo(esEdicion: Boolean, detalle: String?) {
+    fun notificarGuardadoEncargo(
+        esEdicion: Boolean,
+        detalle: String?,
+        idClienteAfectado: Long? = null
+    ) {
         val tipo = if (esEdicion) TipoAvisoEncargo.ACTUALIZADO else TipoAvisoEncargo.CREADO
         val nuevoAviso = tipo to (detalle ?: "")
         Log.d("AVISO_DEBUG", "notificarGuardadoEncargo -> esEdicion=$esEdicion, detalle=$detalle")
 
-        _uiState.update { current ->
-            if (current.avisoEncargo == nuevoAviso) current
-            else current.copy(avisoEncargo = nuevoAviso)
+        if (idClienteAfectado != null) {
+            contadorActividad += 1L
+            actividadPorCliente[idClienteAfectado] = contadorActividad
         }
-        cargarDatosTaller()
+
+        _uiState.update { current ->
+            val avisoActualizado = if (current.avisoEncargo == nuevoAviso) {
+                current.avisoEncargo
+            } else {
+                nuevoAviso
+            }
+            current.copy(avisoEncargo = avisoActualizado)
+        }
+
+        tallerRepo.obtenerClientes(
+            onSuccess = { listaClientes ->
+                // Si se creó un cliente nuevo y no teníamos su id aún, el primero nuevo suele quedar arriba
+                val ordenada = ordenarClientesPorActividad(listaClientes)
+                _uiState.update {
+                    it.copy(
+                        clientes = ordenada,
+                        isLoading = false
+                    )
+                }
+            },
+            onError = {
+                cargarDatosTaller()
+            }
+        )
+
+        tallerRepo.obtenerEncargos(
+            onSuccess = { listaEncargos ->
+                _uiState.update { it.copy(encargos = listaEncargos) }
+            },
+            onError = {}
+        )
+    }
+
+    private fun ordenarClientesPorActividad(clientes: List<ClienteDTO>): List<ClienteDTO> {
+        if (actividadPorCliente.isEmpty()) return clientes
+        return clientes.mapIndexed { indiceOriginal, cliente ->
+            val puntaje = actividadPorCliente[cliente.id] ?: 0L
+            Triple(cliente, puntaje, indiceOriginal)
+        }.sortedWith(
+            compareByDescending<Triple<ClienteDTO, Long, Int>> { it.second }
+                .thenBy { it.third }
+        ).map { it.first }
     }
 }

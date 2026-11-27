@@ -43,7 +43,8 @@ fun PaginaFormularioTrabajoWizard(
     clienteInicial: ClienteDTO? = null,
     viewModel: WizardTrabajoViewModel = viewModel(),
     onCancelarClick: () -> Unit = {},
-    onGuardadoExitoso: () -> Unit = {}
+    onGuardadoExitoso: () -> Unit = {},
+    onAmpliarFotoClick: (String) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
@@ -109,7 +110,8 @@ fun PaginaFormularioTrabajoWizard(
                         PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
                     )
                 },
-                onEliminarFotoClick = viewModel::eliminarFotoEnIndice
+                onEliminarFotoClick = viewModel::eliminarFotoEnIndice,
+                onAmpliarFotoClick = onAmpliarFotoClick
             )
         }
     }

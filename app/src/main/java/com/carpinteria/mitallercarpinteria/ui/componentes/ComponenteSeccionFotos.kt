@@ -20,6 +20,7 @@ import com.carpinteria.mitallercarpinteria.ui.theme.*
 @Composable
 fun SeccionFotos(
     rutasImagenes: List<String>,
+    onAmpliarFoto: (String) -> Unit = {},
     @DrawableRes imagenErrorResId: Int = R.drawable.ic_launcher_background,
     modifier: Modifier = Modifier
 ) {
@@ -63,7 +64,8 @@ fun SeccionFotos(
                     TarjetaImagenAmpliable(
                         rutaGaleria = ruta,
                         descripcion = "Fotografía ${index + 1} del trabajo",
-                        imagenErrorResId = imagenErrorResId
+                        imagenErrorResId = imagenErrorResId,
+                        onAmpliarClick = { onAmpliarFoto(ruta) }
                     )
                 }
             }

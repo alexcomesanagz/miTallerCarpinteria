@@ -20,9 +20,19 @@ class WizardTrabajoViewModel : ViewModel() {
     private val repositorio = TallerRepoGeneral.repo
 
     private var guardadoEnCurso = false
+    private var sesionInicializada = false
+    private var idClienteInicializado: Long? = null
 
-    fun inicializar(clienteInicial: ClienteDTO?) {
+    fun inicializar(clienteInicial: ClienteDTO?, forzarReinicio: Boolean = false) {
+        val nuevoId = clienteInicial?.id
+        if (!forzarReinicio && sesionInicializada && idClienteInicializado == nuevoId) {
+            return
+        }
+
+        sesionInicializada = true
+        idClienteInicializado = nuevoId
         guardadoEnCurso = false
+
         _uiState.value = WizardTrabajoUiState(
             pasoActual = 1,
             esEdicion = clienteInicial != null,
@@ -36,7 +46,8 @@ class WizardTrabajoViewModel : ViewModel() {
                     _uiState.update { actual ->
                         actual.copy(
                             formulario = actual.formulario.copy(
-                                tituloProyecto = encargo?.titulo ?: clienteInicial.titulosEncargos?.firstOrNull().orEmpty(),
+                                tituloProyecto = encargo?.titulo
+                                    ?: clienteInicial.titulosEncargos?.firstOrNull().orEmpty(),
                                 estadoTrabajo = encargo?.estado ?: "En curso",
                                 fechaEntregaEstimada = encargo?.fechaEntregaEstimada.orEmpty(),
                                 fechaCreacion = encargo?.fechaCreacion.orEmpty(),

@@ -19,21 +19,41 @@ class TrabajosViewModel : ViewModel() {
     val uiState: StateFlow<TrabajosUiState> = _uiState.asStateFlow()
 
     private val repositorio = TallerRepoGeneral.repo
+    private val actividadPorCliente = mutableMapOf<Long, Long>()
+    private var contadorActividad = 0L
 
     init {
         cargarClientes()
     }
 
-    // Carga los clientes directamente desde el repositorio del taller
+    fun registrarActividadCliente(idCliente: Long?) {
+        if (idCliente == null) return
+        contadorActividad += 1L
+        actividadPorCliente[idCliente] = contadorActividad
+
+        _uiState.update { current ->
+            val clientesOrdenados = ordenarClientesPorActividad(current.clientes)
+            current.copy(
+                clientes = clientesOrdenados,
+                clientesFiltrados = filtrarClientes(
+                    clientes = clientesOrdenados,
+                    encargos = current.encargos,
+                    texto = current.textoBusqueda
+                )
+            )
+        }
+    }
+
     fun cargarClientes() {
         _uiState.update { it.copy(isLoading = true) }
         repositorio.obtenerClientes(
             onSuccess = { lista ->
+                val ordenada = ordenarClientesPorActividad(lista)
                 _uiState.update { current ->
                     current.copy(
-                        clientes = lista,
+                        clientes = ordenada,
                         clientesFiltrados = filtrarClientes(
-                            clientes = lista,
+                            clientes = ordenada,
                             encargos = current.encargos,
                             texto = current.textoBusqueda
                         ),
@@ -63,12 +83,10 @@ class TrabajosViewModel : ViewModel() {
         )
     }
 
-    // Configurar si entra en modo normal o eliminar
     fun establecerModo(modo: ModoTarjetaTrabajo) {
         _uiState.update { it.copy(modoActual = modo) }
     }
 
-    // Filtrar la lista al escribir en el buscador
     fun onBuscarChange(texto: String) {
         _uiState.update { currentState ->
             currentState.copy(
@@ -109,7 +127,17 @@ class TrabajosViewModel : ViewModel() {
         }
     }
 
-    // Manejar el diálogo de eliminación
+    private fun ordenarClientesPorActividad(clientes: List<ClienteDTO>): List<ClienteDTO> {
+        if (actividadPorCliente.isEmpty()) return clientes
+        return clientes.mapIndexed { indiceOriginal, cliente ->
+            val puntaje = actividadPorCliente[cliente.id] ?: 0L
+            Triple(cliente, puntaje, indiceOriginal)
+        }.sortedWith(
+            compareByDescending<Triple<ClienteDTO, Long, Int>> { it.second }
+                .thenBy { it.third }
+        ).map { it.first }
+    }
+
     fun seleccionarClienteParaEliminar(cliente: ClienteDTO?) {
         _uiState.update { it.copy(clienteAEliminar = cliente) }
     }
@@ -124,6 +152,7 @@ class TrabajosViewModel : ViewModel() {
             repositorio.eliminarCliente(
                 idCliente = idCliente,
                 onSuccess = {
+                    actividadPorCliente.remove(idCliente)
                     _uiState.update { currentState ->
                         val nuevaListaClientes = currentState.clientes.filter { it.id != idCliente }
                         val nuevaListaFiltrada = currentState.clientesFiltrados.filter { it.id != idCliente }

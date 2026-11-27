@@ -26,7 +26,8 @@ fun PaginaDetalleTrabajo(
     avisoEncargo: Pair<TipoAvisoEncargo, String>? = null,
     onLimpiarAvisoEncargo: () -> Unit = {},
     onVolverClick: () -> Unit = {},
-    onEditarClick: (ClienteDTO) -> Unit = {}
+    onEditarClick: (ClienteDTO) -> Unit = {},
+    onAmpliarFotoClick: (String) -> Unit = {}
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -41,7 +42,8 @@ fun PaginaDetalleTrabajo(
         onLimpiarAvisoEncargo = onLimpiarAvisoEncargo,
         onVolverClick = onVolverClick,
         onEditarClick = onEditarClick,
-        onEstadoSeleccionado = viewModel::cambiarEstadoTrabajo
+        onEstadoSeleccionado = viewModel::cambiarEstadoTrabajo,
+        onAmpliarFotoClick = onAmpliarFotoClick
     )
 }
 
@@ -53,7 +55,8 @@ fun PaginaDetalleTrabajoContent(
     onLimpiarAvisoEncargo: () -> Unit = {},
     onVolverClick: () -> Unit = {},
     onEditarClick: (ClienteDTO) -> Unit = {},
-    onEstadoSeleccionado: (String) -> Unit = {}
+    onEstadoSeleccionado: (String) -> Unit = {},
+    onAmpliarFotoClick: (String) -> Unit = {}
 ) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -131,7 +134,8 @@ fun PaginaDetalleTrabajoContent(
                 )
 
                 SeccionFotos(
-                    rutasImagenes = uiState.rutasImagenes
+                    rutasImagenes = uiState.rutasImagenes,
+                    onAmpliarFoto = onAmpliarFotoClick
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))

@@ -4,11 +4,9 @@ import androidx.annotation.DrawableRes
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.outlined.PhotoCamera
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -17,7 +15,6 @@ import androidx.compose.ui.unit.sp
 import com.carpinteria.mitallercarpinteria.R
 import com.carpinteria.mitallercarpinteria.ui.componentes.FotoAdjunta
 import com.carpinteria.mitallercarpinteria.ui.componentes.TarjetaContenedorDetalle
-import com.carpinteria.mitallercarpinteria.ui.componentes.TarjetaImagenAmpliable
 import com.carpinteria.mitallercarpinteria.ui.theme.*
 import com.carpinteria.mitallercarpinteria.ui.viewModels.Uis.EstadoFormularioTrabajo
 
@@ -26,6 +23,7 @@ fun SeccionFotosResumenPaso3(
     estado: EstadoFormularioTrabajo,
     onAdjuntarFotoClick: () -> Unit,
     onEliminarFotoClick: (Int) -> Unit,
+    onAmpliarFotoClick: (String) -> Unit = {},
     @DrawableRes imagenErrorResId: Int = R.drawable.ic_launcher_background,
     modifier: Modifier = Modifier
 ) {
@@ -75,7 +73,8 @@ fun SeccionFotosResumenPaso3(
                 numeroFoto = index + 1,
                 rutaGaleria = ruta,
                 imagenErrorResId = imagenErrorResId,
-                onEliminarClick = { onEliminarFotoClick(index) }
+                onEliminarClick = { onEliminarFotoClick(index) },
+                onAmpliarClick = { onAmpliarFotoClick(ruta) }
             )
         }
 
@@ -118,6 +117,7 @@ fun PaginaPaso3Fotos(
     estado: EstadoFormularioTrabajo,
     onAdjuntarFotoClick: () -> Unit,
     onEliminarFotoClick: (Int) -> Unit,
+    onAmpliarFotoClick: (String) -> Unit = {},
     @DrawableRes imagenErrorResId: Int = R.drawable.ic_launcher_background,
     modifier: Modifier = Modifier
 ) {
@@ -125,48 +125,8 @@ fun PaginaPaso3Fotos(
         estado = estado,
         onAdjuntarFotoClick = onAdjuntarFotoClick,
         onEliminarFotoClick = onEliminarFotoClick,
+        onAmpliarFotoClick = onAmpliarFotoClick,
         imagenErrorResId = imagenErrorResId,
         modifier = modifier
     )
-}
-
-@Preview(showBackground = true, backgroundColor = 0xFFFFF8E8)
-@Composable
-fun PaginaPaso3FotosPreview() {
-    MiTallerCarpinteriaTheme {
-        Box(modifier = Modifier.padding(16.dp)) {
-            PaginaPaso3Fotos(
-                estado = EstadoFormularioTrabajo(
-                    tituloProyecto = "Mesa de comedor",
-                    nombreCliente = "Manuel Ortega",
-                    estadoTrabajo = "Pendiente"
-                ),
-                onAdjuntarFotoClick = {},
-                onEliminarFotoClick = {}
-            )
-        }
-    }
-}
-
-@Preview(showBackground = true, backgroundColor = 0xFFFFF8E8, name = "Paso 3 - Con varias fotos")
-@Composable
-fun PaginaPaso3FotosConImagenesPreview() {
-    MiTallerCarpinteriaTheme {
-        Box(modifier = Modifier.padding(16.dp)) {
-            PaginaPaso3Fotos(
-                estado = EstadoFormularioTrabajo(
-                    tituloProyecto = "Armario de roble",
-                    nombreCliente = "Carmen Ruiz",
-                    estadoTrabajo = "En curso",
-                    rutasImagenes = listOf(
-                        "https://images.unsplash.com/photo-1659930087003-2d64e33181f7?auto=format&fit=crop&w=900&q=82",
-                        "https://images.unsplash.com/photo-1679797850019-3d0d8659a695?auto=format&fit=crop&w=900&q=82"
-                    )
-                ),
-                onAdjuntarFotoClick = {},
-                onEliminarFotoClick = {},
-                imagenErrorResId = android.R.drawable.ic_menu_report_image
-            )
-        }
-    }
 }
